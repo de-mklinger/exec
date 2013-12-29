@@ -31,11 +31,14 @@ public class CommandLine {
 	private NullFile stdErrNullFile = null;
 	private PipeRunnable stdoutPipe = null;
 	private PipeRunnable stderrPipe = null;
+	private Pingable pingable = null;
+	private PingRunnable pingRunnable;
 	private Process process;
 	private byte[] stdinBytes;
 	private Map<String, String> environment;
 	private long timeout;
 	private long startTime;
+	private boolean destroyOnError = true;
 
 	public CommandLine(final Object... commandLineParts) {
 		command = new ArrayList<>();
@@ -58,6 +61,11 @@ public class CommandLine {
 		return this;
 	}
 
+	public CommandLine ping(final Pingable pingable) {
+		this.pingable = pingable;
+		return this;
+	}
+
 	public CommandLine directory(final File directory) {
 		pb.directory(directory);
 		return this;
@@ -73,6 +81,11 @@ public class CommandLine {
 
 	public CommandLine timeout(final long timeout) {
 		this.timeout = timeout;
+		return this;
+	}
+
+	public CommandLine destroyOnError(final boolean destroyOnError) {
+		this.destroyOnError = destroyOnError;
 		return this;
 	}
 
@@ -114,6 +127,11 @@ public class CommandLine {
 			throw new CommandLineException(e);
 		}
 
+		if (pingable != null) {
+			pingRunnable = new PingRunnable(pingable);
+			threadPool.execute(pingRunnable);
+		}
+
 		if (stdout != null) {
 			stdoutPipe = new PipeRunnable(process.getInputStream(), stdout);
 			threadPool.execute(stdoutPipe);
@@ -138,22 +156,47 @@ public class CommandLine {
 		final int exitValue;
 		try {
 			try {
-				exitValue = doWaitFor();
-			} finally {
-				if (stdoutPipe != null) {
-					stdoutPipe.waitFor(500);
-					if (stdoutPipe.getError() != null) {
-						throw new CommandLineException("Error reading stdout", stdoutPipe.getError());
+				try {
+					try {
+						exitValue = doWaitFor();
+					} catch (final CommandLineException e) {
+						if (destroyOnError) {
+							destroy();
+						}
+						throw e;
+					} catch (final InterruptedException e) {
+						if (destroyOnError) {
+							destroy();
+						}
+						throw e;
+					} catch (final Exception e) {
+						if (destroyOnError) {
+							destroy();
+						}
+						throw new CommandLineException(e);
+					} finally {
+						if (stdoutPipe != null) {
+							stdoutPipe.waitFor(500);
+							if (stdoutPipe.getError() != null) {
+								throw new CommandLineException("Error reading stdout", stdoutPipe.getError());
+							}
+						}
+					}
+				} finally {
+					if (stderrPipe != null) {
+						stderrPipe.waitFor(500);
+						if (stderrPipe.getError() != null) {
+							throw new CommandLineException("Error reading stderr", stderrPipe.getError());
+						}
 					}
 				}
-				if (stderrPipe != null) {
-					stderrPipe.waitFor(500);
-					if (stderrPipe.getError() != null) {
-						throw new CommandLineException("Error reading stderr", stderrPipe.getError());
-					}
+			} finally {
+				if (pingRunnable != null) {
+					pingRunnable.interrupt();
 				}
 			}
 		} finally {
+			pingRunnable = null;
 			stdoutPipe = null;
 			stderrPipe = null;
 			process = null;
@@ -166,10 +209,13 @@ public class CommandLine {
 	}
 
 	private int doWaitFor() throws InterruptedException, CommandLineException {
-		if (timeout < 1) {
+		if (timeout < 1 && !destroyOnError) {
 			return process.waitFor();
 		} else {
 			while (System.currentTimeMillis() < startTime + timeout) {
+				if (destroyOnError) {
+					checkErrorHandlingRunnables();
+				}
 				try {
 					return process.exitValue();
 				} catch (final IllegalThreadStateException e) {
@@ -178,6 +224,18 @@ public class CommandLine {
 			}
 			process.destroy();
 			throw new CommandLineException("Timeout: command execution took longer than " + timeout + "ms");
+		}
+	}
+
+	private void checkErrorHandlingRunnables() throws CommandLineException {
+		if (stderrPipe != null && stderrPipe.getError() != null) {
+			throw new CommandLineException("Error in stderr pipe", stderrPipe.getError());
+		}
+		if (stdoutPipe != null && stdoutPipe.getError() != null) {
+			throw new CommandLineException("Error in stdout pipe", stdoutPipe.getError());
+		}
+		if (pingRunnable != null && pingRunnable.getError() != null) {
+			throw new CommandLineException("Error in ping runnable", pingRunnable.getError());
 		}
 	}
 
