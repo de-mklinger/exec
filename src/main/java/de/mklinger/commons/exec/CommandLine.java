@@ -212,7 +212,7 @@ public class CommandLine {
 		if (timeout < 1 && !destroyOnError) {
 			return process.waitFor();
 		} else {
-			while (System.currentTimeMillis() < startTime + timeout) {
+			while (timeout < 1 || System.currentTimeMillis() < startTime + timeout) {
 				if (destroyOnError) {
 					checkErrorHandlingRunnables();
 				}
