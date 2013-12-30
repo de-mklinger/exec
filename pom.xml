@@ -10,12 +10,12 @@
 
 	<groupId>de.mklinger.commons</groupId>
 	<artifactId>exec</artifactId>
-	<version>0.4</version>
+	<version>0.5-SNAPSHOT</version>
 
 	<scm>
 		<connection>scm:git:git@mklinger.de:exec.git</connection>
 		<developerConnection>scm:git:git@mklinger.de:exec.git</developerConnection>
-		<tag>exec-0.4</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<repositories>
