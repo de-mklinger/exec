@@ -89,12 +89,30 @@ public class CommandLineUtil {
 	}
 
 	public static String findWindowsProgramFilesExecutable(final String executable, final String... subFolders) {
+		String path = null;
+
 		final String programFiles = System.getenv("ProgramFiles");
 		LOG.info("Using program files dierctory: {}", programFiles);
 		final File programFilesDir = new File(programFiles);
-		if (!programFilesDir.isDirectory()) {
-			return null;
+		if (programFilesDir.isDirectory()) {
+			path = findWindowsProgramFilesExecutable(programFilesDir, executable, subFolders);
 		}
+
+		if (path == null) {
+			final String programFilesX86 = System.getenv("ProgramFiles(x86)");
+			if (programFilesX86 != null) {
+				LOG.info("Using program files x86 dierctory: {}", programFilesX86);
+				final File programFilesX86Dir = new File(programFilesX86);
+				if (programFilesDir.isDirectory()) {
+					path = findWindowsProgramFilesExecutable(programFilesX86Dir, executable, subFolders);
+				}
+			}
+		}
+
+		return path;
+	}
+
+	private static String findWindowsProgramFilesExecutable(final File programFilesDir, final String executable, final String... subFolders) {
 		for (final String subFolder : subFolders) {
 			final File executableFile = new File(programFilesDir, subFolder + File.separator + executable);
 			if (executableFile.exists() && executableFile.canExecute()) {
