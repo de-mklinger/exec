@@ -1,6 +1,7 @@
 package de.mklinger.commons.exec;
 
 public class PingRunnable extends ErrorHandlingRunnable {
+	private Thread runningThread;
 	private final Pingable pingable;
 
 	public PingRunnable(final Pingable pingable) {
@@ -9,6 +10,7 @@ public class PingRunnable extends ErrorHandlingRunnable {
 
 	@Override
 	public void doRun() {
+		runningThread = Thread.currentThread();
 		while (true) {
 			if (Thread.currentThread().isInterrupted()) {
 				return;
@@ -28,6 +30,6 @@ public class PingRunnable extends ErrorHandlingRunnable {
 	}
 
 	public void interrupt() {
-		Thread.currentThread().interrupt();
+		runningThread.interrupt();
 	}
 }
