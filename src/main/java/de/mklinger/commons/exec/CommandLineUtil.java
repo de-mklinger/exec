@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
  * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public class CommandLineUtil {
+	private static final String OS_NAME = System.getProperty("os.name");
+	private static final String OS_ARCH = System.getProperty("os.arch");
+
 	private static final Logger LOG = LoggerFactory.getLogger(CommandLineUtil.class);
 
 	public static String findExecutable(final String... executables) {
@@ -37,9 +40,9 @@ public class CommandLineUtil {
 			}
 		}
 		if (executablePath == null) {
-			LOG.warn("Could not find {} executable", executable);
+			LOG.info("Could not find {} executable on PATH", executable);
 		} else {
-			LOG.info("Found executable {} at location {}", executable, executablePath);
+			LOG.info("Found executable {} on PATH at location {}", executable, executablePath);
 		}
 		return executablePath;
 	}
@@ -67,7 +70,7 @@ public class CommandLineUtil {
 			return extractExecutablePath(out.toString());
 		} catch (final CommandLineException e) {
 			// ignore
-			LOG.debug("Error trying to find executable unix way", e);
+			LOG.debug("Error trying to find executable with command", e);
 		}
 		return null;
 	}
@@ -92,18 +95,20 @@ public class CommandLineUtil {
 		String path = null;
 
 		final String programFiles = System.getenv("ProgramFiles");
-		LOG.info("Using program files dierctory: {}", programFiles);
-		final File programFilesDir = new File(programFiles);
-		if (programFilesDir.isDirectory()) {
-			path = findWindowsProgramFilesExecutable(programFilesDir, executable, subFolders);
+		if (programFiles != null) {
+			final File programFilesDir = new File(programFiles);
+			if (programFilesDir.isDirectory()) {
+				LOG.info("Trying program files dierctory: {}", programFilesDir);
+				path = findWindowsProgramFilesExecutable(programFilesDir, executable, subFolders);
+			}
 		}
 
 		if (path == null) {
 			final String programFilesX86 = System.getenv("ProgramFiles(x86)");
 			if (programFilesX86 != null) {
-				LOG.info("Using program files x86 dierctory: {}", programFilesX86);
 				final File programFilesX86Dir = new File(programFilesX86);
-				if (programFilesDir.isDirectory()) {
+				if (programFilesX86Dir.isDirectory()) {
+					LOG.info("Trying program files x86 dierctory: {}", programFilesX86);
 					path = findWindowsProgramFilesExecutable(programFilesX86Dir, executable, subFolders);
 				}
 			}
@@ -117,20 +122,53 @@ public class CommandLineUtil {
 			final File executableFile = new File(programFilesDir, subFolder + File.separator + executable);
 			if (executableFile.exists() && executableFile.canExecute()) {
 				final String path = executableFile.getAbsolutePath();
-				LOG.info("Found windows program files executable at: {}", executableFile.getAbsolutePath());
+				LOG.info("Found windows program files executable at: {}", executableFile);
 				return path;
 			}
 		}
 		return null;
 	}
 
+	public static String findMacOsXApplicationExecutable(final String executable, final String... appNames) {
+		final File applicationsDir = new File("/Applications");
+		if (!applicationsDir.exists() || !applicationsDir.canRead()) {
+			return null;
+		}
+		for (final String appName : appNames) {
+			final File executableCandidate = new File(applicationsDir, appName + "/Contents/MacOS/" + executable);
+			if (executableCandidate.exists() && executableCandidate.canExecute()) {
+				LOG.info("Found MacOSX applications executable at: {}", executableCandidate);
+				return executableCandidate.getAbsolutePath();
+			}
+		}
+		return null;
+	}
+
 	public static boolean isWindows() {
-		final String osName = System.getProperty("os.name");
+		final String osName = OS_NAME;
 		return osName != null && osName.toLowerCase().startsWith("win");
 	}
 
 	public static boolean isMacOsX() {
-		final String osName = System.getProperty("os.name");
-		return osName != null && osName.equalsIgnoreCase("Mac OS X");
+		final String osName = OS_NAME;
+		return "Mac OS X".equalsIgnoreCase(osName);
+	}
+
+	public static boolean isLinux() {
+		final String osName = OS_NAME;
+		return "Linux".equalsIgnoreCase(osName);
+	}
+
+	public static boolean is64bit() {
+		final String arch = OS_ARCH;
+		return arch != null && arch.contains("64");
+	}
+
+	public static String escapeShellArg(final String s) {
+		if (s == null || s.isEmpty()) {
+			return "''";
+		}
+		final String escaped = s.replace("\'", "\\\'");
+		return "\'" + escaped + "\'";
 	}
 }

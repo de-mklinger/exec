@@ -290,6 +290,13 @@ public class CommandLine {
 		}
 	}
 
+	public int exitValue() {
+		if (process == null) {
+			throw new IllegalThreadStateException("No process");
+		}
+		return process.exitValue();
+	}
+
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
