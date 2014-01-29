@@ -7,8 +7,10 @@ import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -20,7 +22,22 @@ import org.slf4j.LoggerFactory;
  */
 public class CommandLine {
 	private static final Logger LOG = LoggerFactory.getLogger(CommandLine.class);
+
+	// TODO move to some kind of manager class
 	private static final ExecutorService threadPool = Executors.newCachedThreadPool(new DeamonThreadCmdThreadFactory());
+	private static final Set<CommandLine> destroyOnShutdownCommandLines = new HashSet<>();
+	static {
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				synchronized (destroyOnShutdownCommandLines) {
+					for (final CommandLine cmd : destroyOnShutdownCommandLines) {
+						cmd.destroy();
+					}
+				}
+			}
+		});
+	}
 
 	private final List<String> command;
 	private final ProcessBuilder pb;
@@ -39,6 +56,7 @@ public class CommandLine {
 	private long timeout;
 	private long startTime;
 	private boolean destroyOnError = true;
+	private boolean destroyOnShutdown = true;
 
 	public CommandLine(final Object... commandLineParts) {
 		command = new ArrayList<>();
@@ -89,6 +107,11 @@ public class CommandLine {
 		return this;
 	}
 
+	public CommandLine destroyOnShutdown(final boolean destroyOnShutdown) {
+		this.destroyOnShutdown = destroyOnShutdown;
+		return this;
+	}
+
 	public void execute() throws CommandLineException {
 		try {
 			start();
@@ -122,9 +145,14 @@ public class CommandLine {
 
 		try {
 			process = pb.start();
-			startTime = System.currentTimeMillis();
 		} catch (final IOException e) {
 			throw new CommandLineException(e);
+		}
+		startTime = System.currentTimeMillis();
+		if (destroyOnShutdown) {
+			synchronized (destroyOnShutdownCommandLines) {
+				destroyOnShutdownCommandLines.add(this);
+			}
 		}
 
 		if (pingable != null) {
@@ -159,6 +187,11 @@ public class CommandLine {
 				try {
 					try {
 						exitValue = doWaitFor();
+						if (destroyOnShutdown) {
+							synchronized (destroyOnShutdownCommandLines) {
+								destroyOnShutdownCommandLines.remove(this);
+							}
+						}
 					} catch (final CommandLineException e) {
 						if (destroyOnError) {
 							destroy();
@@ -253,6 +286,11 @@ public class CommandLine {
 	public void destroy() {
 		if (process != null) {
 			process.destroy();
+		}
+		if (destroyOnShutdown) {
+			synchronized (destroyOnShutdownCommandLines) {
+				destroyOnShutdownCommandLines.remove(this);
+			}
 		}
 	}
 
