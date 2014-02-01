@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,8 +32,10 @@ public class CommandLine {
 			@Override
 			public void run() {
 				synchronized (destroyOnShutdownCommandLines) {
-					for (final CommandLine cmd : destroyOnShutdownCommandLines) {
-						cmd.destroy();
+					for (final Iterator<CommandLine> iterator = destroyOnShutdownCommandLines.iterator(); iterator.hasNext();) {
+						final CommandLine cmd = iterator.next();
+						cmd.destroyProcess();
+						iterator.remove();
 					}
 				}
 			}
@@ -284,13 +287,17 @@ public class CommandLine {
 	}
 
 	public void destroy() {
-		if (process != null) {
-			process.destroy();
-		}
+		destroyProcess();
 		if (destroyOnShutdown) {
 			synchronized (destroyOnShutdownCommandLines) {
 				destroyOnShutdownCommandLines.remove(this);
 			}
+		}
+	}
+
+	private void destroyProcess() {
+		if (process != null) {
+			process.destroy();
 		}
 	}
 
