@@ -185,6 +185,20 @@ public class CommandLine {
 		}
 	}
 
+	//	public Integer getPid() {
+	//		if (process != null && process.getClass().getName().equals("java.lang.UNIXProcess")) {
+	//			try {
+	//				final Class<?> proc = process.getClass();
+	//				final Field field = proc.getDeclaredField("pid");
+	//				field.setAccessible(true);
+	//				return (Integer) field.get(process);
+	//			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+	//				LOG.warn("Could not get PID for process", e);
+	//			}
+	//		}
+	//		return null;
+	//	}
+
 	public int waitFor() throws CommandLineException, InterruptedException {
 		final int exitValue;
 		try {
