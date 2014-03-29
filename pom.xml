@@ -12,6 +12,22 @@
 	<artifactId>exec</artifactId>
 	<version>0.7-SNAPSHOT</version>
 
+	<licenses>
+		<license>
+			<name>Apache License 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
+	<inceptionYear>2013</inceptionYear>
+	<developers>
+		<developer>
+			<name>Marc Klinger</name>
+			<email>mklinger[at]mklinger[dot]de</email>
+			<organization>mklinger GmbH</organization>
+			<organizationUrl>http://www.mklinger.de</organizationUrl>
+		</developer>
+	</developers>
+
 	<scm>
 		<connection>scm:git:git@mklinger.de:exec.git</connection>
 		<developerConnection>scm:git:git@mklinger.de:exec.git</developerConnection>
