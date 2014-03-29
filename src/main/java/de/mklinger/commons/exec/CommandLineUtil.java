@@ -54,6 +54,10 @@ public class CommandLineUtil {
 			}
 		}
 		if (executablePath == null) {
+			// this should already be covered by which, but sometimes seems not to work :(
+			executablePath = findExecutableBySystemPath(executable);
+		}
+		if (executablePath == null) {
 			LOG.info("Could not find {} executable on PATH", executable);
 		} else {
 			LOG.info("Found executable {} on PATH at location {}", executable, executablePath);
@@ -74,6 +78,7 @@ public class CommandLineUtil {
 				return candidate.getAbsolutePath();
 			}
 		}
+		LOG.info("Executable not found on PATH: {}", path);
 		return null;
 	}
 

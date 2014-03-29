@@ -56,7 +56,7 @@ public class PipeRunnable extends ErrorHandlingRunnable {
 		final long start = System.currentTimeMillis();
 		while (isRunning()) {
 			if (start + timeoutMillis < System.currentTimeMillis()) {
-				throw new CommandLineException("Timout waiting for pipe");
+				throw new CommandLineException("Timout waiting for pipe after " + timeoutMillis + " ms");
 			}
 			Thread.sleep(1);
 		}

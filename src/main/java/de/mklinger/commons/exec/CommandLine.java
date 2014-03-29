@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
  * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public class CommandLine {
+	private static final long PIPE_RUNNABLE_TIMEOUT = 60000;
+
 	private static final Logger LOG = LoggerFactory.getLogger(CommandLine.class);
 
 	// TODO move to some kind of manager class
@@ -197,6 +199,20 @@ public class CommandLine {
 		}
 	}
 
+	//	public Integer getPid() {
+	//		if (process != null && process.getClass().getName().equals("java.lang.UNIXProcess")) {
+	//			try {
+	//				final Class<?> proc = process.getClass();
+	//				final Field field = proc.getDeclaredField("pid");
+	//				field.setAccessible(true);
+	//				return (Integer) field.get(process);
+	//			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+	//				LOG.warn("Could not get PID for process", e);
+	//			}
+	//		}
+	//		return null;
+	//	}
+
 	public int waitFor() throws CommandLineException, InterruptedException {
 		final int exitValue;
 		try {
@@ -226,7 +242,7 @@ public class CommandLine {
 						throw new CommandLineException(e);
 					} finally {
 						if (stdoutPipe != null) {
-							stdoutPipe.waitFor(500);
+							stdoutPipe.waitFor(PIPE_RUNNABLE_TIMEOUT);
 							if (stdoutPipe.getError() != null) {
 								throw new CommandLineException("Error reading stdout", stdoutPipe.getError());
 							}
@@ -234,7 +250,7 @@ public class CommandLine {
 					}
 				} finally {
 					if (stderrPipe != null) {
-						stderrPipe.waitFor(500);
+						stderrPipe.waitFor(PIPE_RUNNABLE_TIMEOUT);
 						if (stderrPipe.getError() != null) {
 							throw new CommandLineException("Error reading stderr", stderrPipe.getError());
 						}
