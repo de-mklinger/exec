@@ -1,3 +1,7 @@
+find . -name "*.java" -exec grep -iL "mklinger GmbH" {} \; | while read file; do
+  echo "$file"
+  TMP=`mktemp`
+  cat <<EOF > "$TMP"
 /* Copyright 2013, 2014 mklinger GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,16 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.mklinger.commons.exec;
-
-/**
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
- */
-public class CmdBuilder extends CmdBuilderBase<CmdBuilder> {
-	public CmdBuilder(final String command) {
-		if (command == null) {
-			throw new NullPointerException();
-		}
-		arg(command);
-	}
-}
+EOF
+  cat "$file" >> "$TMP"
+  mv "$TMP" "$file"
+done
