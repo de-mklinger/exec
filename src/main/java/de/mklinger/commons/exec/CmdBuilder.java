@@ -14,6 +14,8 @@
  */
 package de.mklinger.commons.exec;
 
+import java.io.File;
+
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
@@ -22,6 +24,16 @@ public class CmdBuilder extends CmdBuilderBase<CmdBuilder> {
 		if (command == null) {
 			throw new NullPointerException();
 		}
+		if (command.isEmpty()) {
+			throw new IllegalArgumentException();
+		}
 		arg(command);
+	}
+
+	public CmdBuilder(final File command) {
+		if (command == null) {
+			throw new NullPointerException();
+		}
+		arg(command.getAbsolutePath());
 	}
 }

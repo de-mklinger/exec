@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
@@ -65,6 +66,10 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 		return getBuilder();
 	}
 
+	public B timeout(final int duration, final TimeUnit timeUnit) {
+		return timeout(timeUnit.toMillis(duration));
+	}
+
 	public B destroyOnError(final boolean destroyOnError) {
 		cmdSettings.setDestroyOnError(destroyOnError);
 		return getBuilder();
@@ -92,6 +97,9 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 	}
 
 	private void addArguments(final List<String> command, final Object... arguments) {
+		if (arguments == null) {
+			return;
+		}
 		for (final Object o : arguments) {
 			if (o == null) {
 				continue;
@@ -107,6 +115,8 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 					idx++;
 				}
 				addArguments(command,  array);
+			} else if (File.class.isAssignableFrom(o.getClass())) {
+				command.add(((File)o).getAbsolutePath());
 			} else {
 				command.add(String.valueOf(o));
 			}

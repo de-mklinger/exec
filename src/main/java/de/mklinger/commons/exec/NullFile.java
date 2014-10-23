@@ -14,6 +14,7 @@
  */
 package de.mklinger.commons.exec;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
@@ -27,37 +28,57 @@ import org.slf4j.LoggerFactory;
  * {@link #cleanup()} is called.
  * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
-public class NullFile {
+public class NullFile implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(NullFile.class);
 	private File file;
 	private boolean temporaryFile;
 
 	public NullFile() throws IOException {
-		if (CommandLineUtil.isWindows()) {
-			LOG.debug("Using native NUL device");
-			this.file = new File("NUL");
+		this(getNativeNull());
+	}
+
+	protected NullFile(final File nativeNull) throws IOException {
+		if (nativeNull != null && nativeNull.exists() && nativeNull.canWrite()) {
+			LOG.debug("Using native null device: {}", nativeNull);
+			this.file = nativeNull;
 			this.temporaryFile = false;
 		} else {
-			final File devNull = new File("/dev/null");
-			if (devNull.exists() && devNull.canWrite()) {
-				LOG.debug("Using native null device: {}", devNull);
-				this.file = devNull;
-				this.temporaryFile = false;
-			} else {
-				LOG.warn("Using temporary file as simulated null device");
-				this.file = File.createTempFile("null", ".null");
-				this.temporaryFile = true;
-			}
+			LOG.warn("Using temporary file as simulated null device");
+			this.file = File.createTempFile("null", ".null");
+			this.file.deleteOnExit();
+			this.temporaryFile = true;
 		}
+	}
+
+	private static File getNativeNull() {
+		File nativeNull = null;
+		if (CommandLineUtil.isWindows()) {
+			nativeNull = new File("NUL");
+		} else {
+			nativeNull = new File("/dev/null");
+		}
+		return nativeNull;
 	}
 
 	public File getFile() {
 		return file;
 	}
 
+	/**
+	 * Cleanup any temporary files that this instance may use.
+	 */
 	public void cleanup() {
 		if (temporaryFile) {
 			file.delete();
 		}
+	}
+
+	/**
+	 * Cleanup any temporary files that this instance may use.
+	 * Equivalent to calling {@link #cleanup()}.
+	 */
+	@Override
+	public void close() {
+		cleanup();
 	}
 }

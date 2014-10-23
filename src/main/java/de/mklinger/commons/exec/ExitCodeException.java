@@ -42,4 +42,20 @@ public class ExitCodeException extends CommandLineException {
 	public int getExitCode() {
 		return exitCode;
 	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(getClass().getName());
+		final String message = getLocalizedMessage();
+		if (message != null) {
+			sb.append(": ");
+			sb.append(message);
+		}
+		sb.append(" - Expected exit code ");
+		sb.append(expectedExitCode);
+		sb.append(" but was ");
+		sb.append(exitCode);
+		return sb.toString();
+	}
 }
