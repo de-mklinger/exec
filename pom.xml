@@ -10,7 +10,7 @@
 
 	<groupId>de.mklinger.commons</groupId>
 	<artifactId>exec</artifactId>
-	<version>0.11-SNAPSHOT</version>
+	<version>0.11</version>
 
 	<licenses>
 		<license>
@@ -31,7 +31,7 @@
 	<scm>
 		<connection>scm:git:git@mklinger.de:exec.git</connection>
 		<developerConnection>scm:git:git@mklinger.de:exec.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>exec-0.11</tag>
 	</scm>
 
 	<repositories>
