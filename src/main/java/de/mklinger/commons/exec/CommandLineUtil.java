@@ -90,6 +90,9 @@ public class CommandLineUtil {
 		} catch (final CommandLineException e) {
 			// ignore
 			LOG.debug("Error trying to find executable with command", e);
+		} catch (final InterruptedException e) {
+			Thread.currentThread().interrupt();
+			LOG.debug("Interrupted while trying to find executable with command", e);
 		}
 		return null;
 	}

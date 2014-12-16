@@ -131,13 +131,10 @@ public class CommandLine {
 		return this;
 	}
 
-	public void execute() throws CommandLineException {
+	public void execute() throws CommandLineException, InterruptedException {
 		try {
 			start();
 			waitFor();
-		} catch (final InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new CommandLineException("Interrupted");
 		} finally {
 			close();
 		}
