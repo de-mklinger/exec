@@ -5,12 +5,13 @@
 	<parent>
 		<groupId>de.mklinger.maven</groupId>
 		<artifactId>maven-parent</artifactId>
-		<version>1.1</version>
+		<version>1.7</version>
 	</parent>
 
 	<groupId>de.mklinger.commons</groupId>
 	<artifactId>exec</artifactId>
 	<version>0.14-SNAPSHOT</version>
+	<packaging>bundle</packaging>
 
 	<licenses>
 		<license>
@@ -67,8 +68,14 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+			</plugin>
+		</plugins>
 		<pluginManagement>
 			<plugins>
 				<!-- | Use 'mvn license:format -N' at top of project to add missing headers -->
@@ -89,5 +96,5 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
-	</build>	
+	</build>
 </project>
