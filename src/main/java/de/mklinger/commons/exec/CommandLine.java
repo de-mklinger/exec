@@ -35,7 +35,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de
+ * @deprecated Use {@link Cmd} together with {@link CmdBuilder} and {@link CmdSettings}.
  */
+@Deprecated
 public class CommandLine {
 	private static final long PIPE_RUNNABLE_TIMEOUT = 60000;
 

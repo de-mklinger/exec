@@ -25,6 +25,7 @@ import java.util.Map;
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
 public class CmdSettings {
+	private ExecutorProvider executorProvider = new DefaultExecutorProvider();
 	private List<String> command;
 	private File directory;
 	private int expectedExitValue = 0;
@@ -165,6 +166,15 @@ public class CmdSettings {
 	public void setDestroyOnShutdown(final boolean destroyOnShutdown) {
 		checkFrozen();
 		this.destroyOnShutdown = destroyOnShutdown;
+	}
+
+	public void setExecutorProvider(final ExecutorProvider executorProvider) {
+		checkFrozen();
+		this.executorProvider = executorProvider;
+	}
+
+	public ExecutorProvider getExecutorProvider() {
+		return executorProvider;
 	}
 
 	public void freeze() {

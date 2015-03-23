@@ -22,8 +22,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +34,6 @@ public class Cmd {
 
 	private static final long PIPE_RUNNABLE_TIMEOUT = 60000;
 
-	// TODO move to some kind of manager class
-	private static final ExecutorService threadPool = Executors.newCachedThreadPool(new DeamonThreadCmdThreadFactory());
 	private static final Set<Cmd> destroyOnShutdownCmds = new HashSet<>();
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -70,265 +66,269 @@ public class Cmd {
 	/**
 	 * Start the process and wait for it to exit.
 	 */
-	 public void execute() throws CommandLineException {
-		 try {
-			 start();
-			 waitFor();
-		 } catch (final InterruptedException e) {
-			 Thread.currentThread().interrupt();
-			 throw new CommandLineException("Interrupted");
-		 } finally {
-			 close();
-		 }
-	 }
+	public void execute() throws CommandLineException {
+		try {
+			start();
+			waitFor();
+		} catch (final InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new CommandLineInterruptedException(e);
+		} finally {
+			close();
+		}
+	}
 
-	 /**
-	  * Start the process and return immediately. Cmds started with this
-	  * method must be {@link #close() closed} or {@link #destroy() destroyed}
-	  * at some point in future.
-	  */
-	 public void start() throws CommandLineException {
-		 final List<String> command = cmdSettings.getCommand();
-		 if (command == null || cmdSettings.getCommand().isEmpty()) {
-			 throw new IllegalArgumentException("Missing command");
-		 }
-		 LOG.debug("Executing: {}", command);
+	/**
+	 * Start the process and return immediately. Cmds started with this
+	 * method must be {@link #close() closed} or {@link #destroy() destroyed}
+	 * at some point in future.
+	 */
+	public void start() throws CommandLineException {
+		final List<String> command = cmdSettings.getCommand();
+		if (command == null || cmdSettings.getCommand().isEmpty()) {
+			throw new IllegalArgumentException("Missing command");
+		}
+		LOG.debug("Executing: {}", command);
 
-		 final ProcessBuilder pb = new ProcessBuilder(command);
-		 if (cmdSettings.getDirectory() != null) {
-			 pb.directory(cmdSettings.getDirectory());
-		 }
+		final ProcessBuilder pb = new ProcessBuilder(command);
+		if (cmdSettings.getDirectory() != null) {
+			pb.directory(cmdSettings.getDirectory());
+		}
 
-		 if (cmdSettings.getStdout() == null) {
-			 try {
-				 stdOutNullFile = new NullFile();
-			 } catch (final IOException e) {
-				 throw new CommandLineException("Error creating null file", e);
-			 }
-			 pb.redirectOutput(Redirect.to(stdOutNullFile.getFile()));
-		 }
-		 if (cmdSettings.getStderr() == null) {
-			 try {
-				 stdErrNullFile = new NullFile();
-			 } catch (final IOException e) {
-				 throw new CommandLineException("Error creating null file", e);
-			 }
-			 pb.redirectError(Redirect.to(stdErrNullFile.getFile()));
-		 }
+		if (cmdSettings.getStdout() == null) {
+			try {
+				stdOutNullFile = new NullFile();
+			} catch (final IOException e) {
+				throw new CommandLineException("Error creating null file", e);
+			}
+			pb.redirectOutput(Redirect.to(stdOutNullFile.getFile()));
+		}
+		if (cmdSettings.getStderr() == null) {
+			try {
+				stdErrNullFile = new NullFile();
+			} catch (final IOException e) {
+				throw new CommandLineException("Error creating null file", e);
+			}
+			pb.redirectError(Redirect.to(stdErrNullFile.getFile()));
+		}
 
-		 try {
-			 process = pb.start();
-		 } catch (final IOException e) {
-			 throw new CommandLineException(e);
-		 }
-		 startTime = System.currentTimeMillis();
-		 if (cmdSettings.isDestroyOnShutdown()) {
-			 synchronized (destroyOnShutdownCmds) {
-				 destroyOnShutdownCmds.add(this);
-			 }
-		 }
+		try {
+			process = pb.start();
+		} catch (final IOException e) {
+			throw new CommandLineException(e);
+		}
+		startTime = System.currentTimeMillis();
+		if (cmdSettings.isDestroyOnShutdown()) {
+			synchronized (destroyOnShutdownCmds) {
+				destroyOnShutdownCmds.add(this);
+			}
+		}
 
-		 if (cmdSettings.getPingable() != null) {
-			 pingRunnable = new PingRunnable(cmdSettings.getPingable());
-			 threadPool.execute(pingRunnable);
-		 }
+		if (cmdSettings.getPingable() != null) {
+			pingRunnable = new PingRunnable(cmdSettings.getPingable());
+			execute(pingRunnable);
+		}
 
-		 if (cmdSettings.getStdout() != null) {
-			 stdoutPipe = new PipeRunnable(process.getInputStream(), cmdSettings.getStdout());
-			 threadPool.execute(stdoutPipe);
-		 }
-		 if (cmdSettings.getStderr() != null) {
-			 stderrPipe = new PipeRunnable(process.getErrorStream(), cmdSettings.getStderr());
-			 threadPool.execute(stderrPipe);
-		 }
+		if (cmdSettings.getStdout() != null) {
+			stdoutPipe = new PipeRunnable(process.getInputStream(), cmdSettings.getStdout());
+			execute(stdoutPipe);
+		}
+		if (cmdSettings.getStderr() != null) {
+			stderrPipe = new PipeRunnable(process.getErrorStream(), cmdSettings.getStderr());
+			execute(stderrPipe);
+		}
 
-		 if (cmdSettings.getStdinBytes() != null) {
-			 try {
-				 final OutputStream pout = process.getOutputStream();
-				 pout.write(cmdSettings.getStdinBytes());
-				 pout.close();
-			 } catch (final IOException e) {
-				 throw new CommandLineException("Error writing to stdin", e);
-			 }
-		 }
-	 }
+		if (cmdSettings.getStdinBytes() != null) {
+			try {
+				final OutputStream pout = process.getOutputStream();
+				pout.write(cmdSettings.getStdinBytes());
+				pout.close();
+			} catch (final IOException e) {
+				throw new CommandLineException("Error writing to stdin", e);
+			}
+		}
+	}
 
-	 //  public Integer getPid() {
-	 //      if (process != null && process.getClass().getName().equals("java.lang.UNIXProcess")) {
-	 //          try {
-	 //              final Class<?> proc = process.getClass();
-	 //              final Field field = proc.getDeclaredField("pid");
-	 //              field.setAccessible(true);
-	 //              return (Integer) field.get(process);
-	 //          } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-	 //              LOG.warn("Could not get PID for process", e);
-	 //          }
-	 //      }
-	 //      return null;
-	 //  }
+	private void execute(final Runnable runnable) {
+		cmdSettings.getExecutorProvider().getExecutor().execute(runnable);
+	}
 
-	 /**
-	  * Wait for an already {@link #start() started} process.
-	  * @return The process exit value.
-	  */
-	 public int waitFor() throws CommandLineException, InterruptedException {
-		 final int exitValue;
-		 try {
-			 try {
-				 try {
-					 try {
-						 exitValue = doWaitFor();
-						 if (cmdSettings.isDestroyOnShutdown()) {
-							 synchronized (destroyOnShutdownCmds) {
-								 destroyOnShutdownCmds.remove(this);
-							 }
-						 }
-					 } catch (final CommandLineException e) {
-						 if (cmdSettings.isDestroyOnError()) {
-							 destroy();
-						 }
-						 throw e;
-					 } catch (final InterruptedException e) {
-						 if (cmdSettings.isDestroyOnError()) {
-							 destroy();
-						 }
-						 throw e;
-					 } catch (final Exception e) {
-						 if (cmdSettings.isDestroyOnError()) {
-							 destroy();
-						 }
-						 throw new CommandLineException(e);
-					 } finally {
-						 if (stdoutPipe != null) {
-							 stdoutPipe.waitFor(PIPE_RUNNABLE_TIMEOUT);
-							 if (stdoutPipe.getError() != null) {
-								 throw new CommandLineException("Error reading stdout", stdoutPipe.getError());
-							 }
-						 }
-					 }
-				 } finally {
-					 if (stderrPipe != null) {
-						 stderrPipe.waitFor(PIPE_RUNNABLE_TIMEOUT);
-						 if (stderrPipe.getError() != null) {
-							 throw new CommandLineException("Error reading stderr", stderrPipe.getError());
-						 }
-					 }
-				 }
-			 } finally {
-				 if (pingRunnable != null) {
-					 pingRunnable.interrupt();
-				 }
-			 }
-		 } finally {
-			 pingRunnable = null;
-			 stdoutPipe = null;
-			 stderrPipe = null;
-			 process = null;
-		 }
+	//  public Integer getPid() {
+	//      if (process != null && process.getClass().getName().equals("java.lang.UNIXProcess")) {
+	//          try {
+	//              final Class<?> proc = process.getClass();
+	//              final Field field = proc.getDeclaredField("pid");
+	//              field.setAccessible(true);
+	//              return (Integer) field.get(process);
+	//          } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+	//              LOG.warn("Could not get PID for process", e);
+	//          }
+	//      }
+	//      return null;
+	//  }
 
-		 if (exitValue != cmdSettings.getExpectedExitValue()) {
-			 throw new ExitCodeException("Error executing command: " + cmdSettings.getCommand() + ". Exit value: " + exitValue, cmdSettings.getExpectedExitValue(), exitValue);
-		 }
-		 return exitValue;
-	 }
+	/**
+	 * Wait for an already {@link #start() started} process.
+	 * @return The process exit value.
+	 */
+	public int waitFor() throws CommandLineException, InterruptedException {
+		final int exitValue;
+		try {
+			try {
+				try {
+					try {
+						exitValue = doWaitFor();
+						if (cmdSettings.isDestroyOnShutdown()) {
+							synchronized (destroyOnShutdownCmds) {
+								destroyOnShutdownCmds.remove(this);
+							}
+						}
+					} catch (final CommandLineException e) {
+						if (cmdSettings.isDestroyOnError()) {
+							destroy();
+						}
+						throw e;
+					} catch (final InterruptedException e) {
+						if (cmdSettings.isDestroyOnError()) {
+							destroy();
+						}
+						throw e;
+					} catch (final Exception e) {
+						if (cmdSettings.isDestroyOnError()) {
+							destroy();
+						}
+						throw new CommandLineException(e);
+					} finally {
+						if (stdoutPipe != null) {
+							stdoutPipe.waitFor(PIPE_RUNNABLE_TIMEOUT);
+							if (stdoutPipe.getError() != null) {
+								throw new CommandLineException("Error reading stdout", stdoutPipe.getError());
+							}
+						}
+					}
+				} finally {
+					if (stderrPipe != null) {
+						stderrPipe.waitFor(PIPE_RUNNABLE_TIMEOUT);
+						if (stderrPipe.getError() != null) {
+							throw new CommandLineException("Error reading stderr", stderrPipe.getError());
+						}
+					}
+				}
+			} finally {
+				if (pingRunnable != null) {
+					pingRunnable.interrupt();
+				}
+			}
+		} finally {
+			pingRunnable = null;
+			stdoutPipe = null;
+			stderrPipe = null;
+			process = null;
+		}
 
-	 private int doWaitFor() throws InterruptedException, CommandLineException {
-		 if (cmdSettings.getTimeout() < 1 && !cmdSettings.isDestroyOnError()) {
-			 return process.waitFor();
-		 } else {
-			 while (cmdSettings.getTimeout() < 1 || System.currentTimeMillis() < startTime + cmdSettings.getTimeout()) {
-				 if (cmdSettings.isDestroyOnError()) {
-					 checkErrorHandlingRunnables();
-				 }
-				 try {
-					 return process.exitValue();
-				 } catch (final IllegalThreadStateException e) {
-					 Thread.sleep(10);
-				 }
-			 }
-			 process.destroy();
-			 throw new CommandLineException("Timeout: command execution took longer than " + cmdSettings.getTimeout() + "ms");
-		 }
-	 }
+		if (exitValue != cmdSettings.getExpectedExitValue()) {
+			throw new ExitCodeException("Error executing command: " + cmdSettings.getCommand() + ". Exit value: " + exitValue, cmdSettings.getExpectedExitValue(), exitValue);
+		}
+		return exitValue;
+	}
 
-	 private void checkErrorHandlingRunnables() throws CommandLineException {
-		 if (stderrPipe != null && stderrPipe.getError() != null) {
-			 throw new CommandLineException("Error in stderr pipe", stderrPipe.getError());
-		 }
-		 if (stdoutPipe != null && stdoutPipe.getError() != null) {
-			 throw new CommandLineException("Error in stdout pipe", stdoutPipe.getError());
-		 }
-		 if (pingRunnable != null && pingRunnable.getError() != null) {
-			 throw new CommandLineException("Error in ping runnable", pingRunnable.getError());
-		 }
-	 }
+	private int doWaitFor() throws InterruptedException, CommandLineException {
+		if (cmdSettings.getTimeout() < 1 && !cmdSettings.isDestroyOnError()) {
+			return process.waitFor();
+		} else {
+			while (cmdSettings.getTimeout() < 1 || System.currentTimeMillis() < startTime + cmdSettings.getTimeout()) {
+				if (cmdSettings.isDestroyOnError()) {
+					checkErrorHandlingRunnables();
+				}
+				try {
+					return process.exitValue();
+				} catch (final IllegalThreadStateException e) {
+					Thread.sleep(10);
+				}
+			}
+			process.destroy();
+			throw new CommandLineException("Timeout: command execution took longer than " + cmdSettings.getTimeout() + "ms");
+		}
+	}
 
-	 public void close() {
-		 destroy();
-	 }
+	private void checkErrorHandlingRunnables() throws CommandLineException {
+		if (stderrPipe != null && stderrPipe.getError() != null) {
+			throw new CommandLineException("Error in stderr pipe", stderrPipe.getError());
+		}
+		if (stdoutPipe != null && stdoutPipe.getError() != null) {
+			throw new CommandLineException("Error in stdout pipe", stdoutPipe.getError());
+		}
+		if (pingRunnable != null && pingRunnable.getError() != null) {
+			throw new CommandLineException("Error in ping runnable", pingRunnable.getError());
+		}
+	}
 
-	 public void destroy() {
-		 destroyProcess();
-		 closeResources();
-		 if (cmdSettings.isDestroyOnShutdown()) {
-			 synchronized (destroyOnShutdownCmds) {
-				 destroyOnShutdownCmds.remove(this);
-			 }
-		 }
-	 }
+	public void close() {
+		destroy();
+	}
 
-	 private void closeResources() {
-		 if (stdOutNullFile != null) {
-			 stdOutNullFile.cleanup();
-			 stdOutNullFile = null;
-		 }
-		 if (stdErrNullFile != null) {
-			 stdErrNullFile.cleanup();
-			 stdErrNullFile = null;
-		 }
-	 }
+	public void destroy() {
+		destroyProcess();
+		closeResources();
+		if (cmdSettings.isDestroyOnShutdown()) {
+			synchronized (destroyOnShutdownCmds) {
+				destroyOnShutdownCmds.remove(this);
+			}
+		}
+	}
 
-	 private void destroyProcess() {
-		 if (process != null) {
-			 process.destroy();
-		 }
-	 }
+	private void closeResources() {
+		if (stdOutNullFile != null) {
+			stdOutNullFile.cleanup();
+			stdOutNullFile = null;
+		}
+		if (stdErrNullFile != null) {
+			stdErrNullFile.cleanup();
+			stdErrNullFile = null;
+		}
+	}
 
-	 public boolean isExecuting() {
-		 if (process == null) {
-			 return false;
-		 }
-		 try {
-			 process.exitValue();
-			 return false;
-		 } catch (final IllegalThreadStateException e) {
-			 return true;
-		 }
-	 }
+	private void destroyProcess() {
+		if (process != null) {
+			process.destroy();
+		}
+	}
 
-	 public int exitValue() {
-		 if (process == null) {
-			 throw new IllegalThreadStateException("No process");
-		 }
-		 return process.exitValue();
-	 }
+	public boolean isExecuting() {
+		if (process == null) {
+			return false;
+		}
+		try {
+			process.exitValue();
+			return false;
+		} catch (final IllegalThreadStateException e) {
+			return true;
+		}
+	}
 
-	 @Override
-	 public String toString() {
-		 final StringBuilder sb = new StringBuilder();
-		 sb.append(super.toString());
-		 sb.append("[command=");
-		 if (cmdSettings.getCommand() != null) {
-			 boolean first = true;
-			 for (final String part : cmdSettings.getCommand()) {
-				 if (!first) {
-					 sb.append(' ');
-				 } else {
-					 first = false;
-				 }
-				 sb.append(part);
-			 }
-		 }
-		 return sb.toString();
-	 }
+	public int exitValue() {
+		if (process == null) {
+			throw new IllegalThreadStateException("No process");
+		}
+		return process.exitValue();
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(super.toString());
+		sb.append("[command=");
+		if (cmdSettings.getCommand() != null) {
+			boolean first = true;
+			for (final String part : cmdSettings.getCommand()) {
+				if (!first) {
+					sb.append(' ');
+				} else {
+					first = false;
+				}
+				sb.append(part);
+			}
+		}
+		return sb.toString();
+	}
 }

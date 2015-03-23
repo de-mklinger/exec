@@ -83,17 +83,14 @@ public class CommandLineUtil {
 		return null;
 	}
 
-	private static String findExecutableWithCommand(final Object... command) {
+	private static String findExecutableWithCommand(final String command, final Object... args) {
 		try {
 			final ByteArrayOutputStream out = new ByteArrayOutputStream();
-			new CommandLine(command).stdout(out).execute();
+			new CmdBuilder(command).args(args).toCmd().execute();
 			return extractExecutablePath(out.toString());
 		} catch (final CommandLineException e) {
 			// ignore
 			LOG.debug("Error trying to find executable with command", e);
-		} catch (final InterruptedException e) {
-			Thread.currentThread().interrupt();
-			LOG.debug("Interrupted while trying to find executable with command", e);
 		}
 		return null;
 	}
