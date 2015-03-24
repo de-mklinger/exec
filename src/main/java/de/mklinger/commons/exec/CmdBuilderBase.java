@@ -124,6 +124,11 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 		}
 	}
 
+	public B executorProvider(final ExecutorProvider executorProvider) {
+		cmdSettings.setExecutorProvider(executorProvider);
+		return getBuilder();
+	}
+
 	protected CmdSettings toCmdSettings() {
 		return new CmdSettings(cmdSettings);
 	}
