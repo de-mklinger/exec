@@ -67,6 +67,17 @@
 			<artifactId>easymock</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>de.mklinger.commons</groupId>
+			<artifactId>junit</artifactId>
+			<version>0.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

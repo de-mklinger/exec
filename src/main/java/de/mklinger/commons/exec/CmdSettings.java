@@ -25,7 +25,7 @@ import java.util.Map;
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
 public class CmdSettings {
-	private ExecutorProvider executorProvider = new DefaultExecutorProvider();
+	private ExecutorProvider executorProvider;
 	private List<String> command;
 	private File directory;
 	private int expectedExitValue = 0;
@@ -66,6 +66,7 @@ public class CmdSettings {
 		this.timeout = cmdSettings.timeout;
 		this.destroyOnError = cmdSettings.destroyOnError;
 		this.destroyOnShutdown = cmdSettings.destroyOnShutdown;
+		this.executorProvider = cmdSettings.executorProvider;
 	}
 
 	public List<String> getCommand() {

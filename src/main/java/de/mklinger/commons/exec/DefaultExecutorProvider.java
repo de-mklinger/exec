@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
 public class DefaultExecutorProvider implements ExecutorProvider {
-	private static volatile Executor executor = null;
+	private volatile Executor executor = null;
 
 	@Override
 	public Executor getExecutor() {

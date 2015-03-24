@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 public class Cmd {
 	private static final Logger LOG = LoggerFactory.getLogger(Cmd.class);
 
+	private static final ExecutorProvider DEFAULT_EXECUTOR_PROVIDER = new DefaultExecutorProvider();
+
 	private static final long PIPE_RUNNABLE_TIMEOUT = 60000;
 
 	private static final Set<Cmd> destroyOnShutdownCmds = new HashSet<>();
@@ -150,7 +152,11 @@ public class Cmd {
 	}
 
 	private void execute(final Runnable runnable) {
-		cmdSettings.getExecutorProvider().getExecutor().execute(runnable);
+		ExecutorProvider executorProvider = cmdSettings.getExecutorProvider();
+		if (executorProvider == null) {
+			executorProvider = DEFAULT_EXECUTOR_PROVIDER;
+		}
+		executorProvider.getExecutor().execute(runnable);
 	}
 
 	//  public Integer getPid() {
