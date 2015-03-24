@@ -10,7 +10,7 @@
 
 	<groupId>de.mklinger.commons</groupId>
 	<artifactId>exec</artifactId>
-	<version>0.16-SNAPSHOT</version>
+	<version>0.17-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
 	<licenses>
