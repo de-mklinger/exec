@@ -97,6 +97,10 @@ public class Cmd {
 			pb.directory(cmdSettings.getDirectory());
 		}
 
+		if (cmdSettings.getEnvironment() != null) {
+			pb.environment().putAll(cmdSettings.getEnvironment());
+		}
+
 		if (cmdSettings.getStdout() == null) {
 			try {
 				stdOutNullFile = new NullFile();
