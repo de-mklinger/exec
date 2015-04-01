@@ -348,7 +348,7 @@ public class CmdBuilderTest {
 		cb.environment("name2", "value2");
 		final Map<String, String> environment = cb.toCmdSettings().getEnvironment();
 		Assert.assertNotNull(environment);
-		Assert.assertEquals(2, environment.size());
+		Assert.assertEquals(2 + System.getenv().size(), environment.size());
 		Assert.assertEquals("value1", environment.get("name1"));
 		Assert.assertEquals("value2", environment.get("name2"));
 	}

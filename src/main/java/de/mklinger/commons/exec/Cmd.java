@@ -34,7 +34,8 @@ public class Cmd {
 
 	private static final ExecutorProvider DEFAULT_EXECUTOR_PROVIDER = new DefaultExecutorProvider();
 
-	private static final long PIPE_RUNNABLE_TIMEOUT = 60000;
+	private static final long PIPE_RUNNABLE_START_TIMEOUT = 1000;
+	private static final long PIPE_RUNNABLE_STOP_TIMEOUT = 60000;
 
 	private static final Set<Cmd> destroyOnShutdownCmds = new HashSet<>();
 	static {
@@ -138,10 +139,12 @@ public class Cmd {
 		if (cmdSettings.getStdout() != null) {
 			stdoutPipe = new PipeRunnable(process.getInputStream(), cmdSettings.getStdout());
 			execute(stdoutPipe);
+			stdoutPipe.waitForStart(PIPE_RUNNABLE_START_TIMEOUT);
 		}
 		if (cmdSettings.getStderr() != null) {
 			stderrPipe = new PipeRunnable(process.getErrorStream(), cmdSettings.getStderr());
 			execute(stderrPipe);
+			stderrPipe.waitForStart(PIPE_RUNNABLE_START_TIMEOUT);
 		}
 
 		if (cmdSettings.getStdinBytes() != null) {
@@ -210,7 +213,7 @@ public class Cmd {
 						throw new CommandLineException(e);
 					} finally {
 						if (stdoutPipe != null) {
-							stdoutPipe.waitFor(PIPE_RUNNABLE_TIMEOUT);
+							stdoutPipe.waitForStop(PIPE_RUNNABLE_STOP_TIMEOUT);
 							if (stdoutPipe.getError() != null) {
 								throw new CommandLineException("Error reading stdout", stdoutPipe.getError());
 							}
@@ -218,7 +221,7 @@ public class Cmd {
 					}
 				} finally {
 					if (stderrPipe != null) {
-						stderrPipe.waitFor(PIPE_RUNNABLE_TIMEOUT);
+						stderrPipe.waitForStop(PIPE_RUNNABLE_STOP_TIMEOUT);
 						if (stderrPipe.getError() != null) {
 							throw new CommandLineException("Error reading stderr", stderrPipe.getError());
 						}

@@ -56,7 +56,7 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 
 	public B environment(final String name, final String value) {
 		if (cmdSettings.getEnvironment() == null) {
-			cmdSettings.setEnvironment(new HashMap<String, String>());
+			cmdSettings.setEnvironment(new HashMap<>(System.getenv()));
 		}
 		cmdSettings.getEnvironment().put(name, value);
 		return getBuilder();
@@ -129,7 +129,7 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 		return getBuilder();
 	}
 
-	protected CmdSettings toCmdSettings() {
+	public CmdSettings toCmdSettings() {
 		return new CmdSettings(cmdSettings);
 	}
 

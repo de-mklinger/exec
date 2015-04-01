@@ -39,7 +39,8 @@ import org.slf4j.LoggerFactory;
  */
 @Deprecated
 public class CommandLine {
-	private static final long PIPE_RUNNABLE_TIMEOUT = 60000;
+	private static final long PIPE_RUNNABLE_START_TIMEOUT = 1000;
+	private static final long PIPE_RUNNABLE_STOP_TIMEOUT = 60000;
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommandLine.class);
 
@@ -182,10 +183,12 @@ public class CommandLine {
 		if (stdout != null) {
 			stdoutPipe = new PipeRunnable(process.getInputStream(), stdout);
 			threadPool.execute(stdoutPipe);
+			stdoutPipe.waitForStart(PIPE_RUNNABLE_START_TIMEOUT);
 		}
 		if (stderr != null) {
 			stderrPipe = new PipeRunnable(process.getErrorStream(), stderr);
 			threadPool.execute(stderrPipe);
+			stdoutPipe.waitForStart(PIPE_RUNNABLE_START_TIMEOUT);
 		}
 
 		if (stdinBytes != null) {
@@ -242,7 +245,7 @@ public class CommandLine {
 						throw new CommandLineException(e);
 					} finally {
 						if (stdoutPipe != null) {
-							stdoutPipe.waitFor(PIPE_RUNNABLE_TIMEOUT);
+							stdoutPipe.waitForStop(PIPE_RUNNABLE_STOP_TIMEOUT);
 							if (stdoutPipe.getError() != null) {
 								throw new CommandLineException("Error reading stdout", stdoutPipe.getError());
 							}
@@ -250,7 +253,7 @@ public class CommandLine {
 					}
 				} finally {
 					if (stderrPipe != null) {
-						stderrPipe.waitFor(PIPE_RUNNABLE_TIMEOUT);
+						stderrPipe.waitForStop(PIPE_RUNNABLE_STOP_TIMEOUT);
 						if (stderrPipe.getError() != null) {
 							throw new CommandLineException("Error reading stderr", stderrPipe.getError());
 						}
