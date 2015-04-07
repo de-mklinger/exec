@@ -99,6 +99,7 @@ public class Cmd {
 		}
 
 		if (cmdSettings.getEnvironment() != null) {
+			pb.environment().clear();
 			pb.environment().putAll(cmdSettings.getEnvironment());
 		}
 
