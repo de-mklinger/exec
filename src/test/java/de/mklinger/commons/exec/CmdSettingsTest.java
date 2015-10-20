@@ -23,7 +23,7 @@ import java.lang.reflect.Type;
 import org.apache.commons.io.input.ClosedInputStream;
 import org.apache.commons.io.output.ClosedOutputStream;
 
-import de.mklinger.commons.junit.BeanTestBase;
+import de.mklinger.commons.junitsupport.BeanTestBase;
 
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
