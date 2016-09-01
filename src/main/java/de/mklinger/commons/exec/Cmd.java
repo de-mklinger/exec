@@ -189,6 +189,7 @@ public class Cmd {
 		final int exitValue;
 		try {
 			try {
+				Exception throwedException = null;
 				try {
 					try {
 						exitValue = doWaitFor();
@@ -199,24 +200,37 @@ public class Cmd {
 						}
 					} catch (final CommandLineException e) {
 						if (cmdSettings.isDestroyOnError()) {
+							LOG.debug("Destroying on error", e);
 							destroy();
 						}
+						throwedException = e;
 						throw e;
 					} catch (final InterruptedException e) {
 						if (cmdSettings.isDestroyOnError()) {
+							LOG.debug("Destroying on error", e);
 							destroy();
 						}
+						throwedException = e;
 						throw e;
 					} catch (final Exception e) {
 						if (cmdSettings.isDestroyOnError()) {
+							LOG.debug("Destroying on error", e);
 							destroy();
 						}
-						throw new CommandLineException(e);
+						final CommandLineException ex = new CommandLineException(e);
+						throwedException = ex;
+						throw ex;
 					} finally {
 						if (stdoutPipe != null) {
 							stdoutPipe.waitForStop(PIPE_RUNNABLE_STOP_TIMEOUT);
 							if (stdoutPipe.getError() != null) {
-								throw new CommandLineException("Error reading stdout", stdoutPipe.getError());
+								final CommandLineException ex = new CommandLineException("Error reading stdout", stdoutPipe.getError());
+								if (throwedException != null) {
+									throwedException.addSuppressed(ex);
+								} else {
+									throwedException = ex;
+									throw ex;
+								}
 							}
 						}
 					}
@@ -224,7 +238,13 @@ public class Cmd {
 					if (stderrPipe != null) {
 						stderrPipe.waitForStop(PIPE_RUNNABLE_STOP_TIMEOUT);
 						if (stderrPipe.getError() != null) {
-							throw new CommandLineException("Error reading stderr", stderrPipe.getError());
+							final CommandLineException ex = new CommandLineException("Error reading stderr", stderrPipe.getError());
+							if (throwedException != null) {
+								throwedException.addSuppressed(ex);
+							} else {
+								throwedException = ex;
+								throw ex;
+							}
 						}
 					}
 				}
@@ -260,7 +280,7 @@ public class Cmd {
 					Thread.sleep(10);
 				}
 			}
-			process.destroy();
+			destroyProcess();
 			throw new CommandLineException("Timeout: command execution took longer than " + cmdSettings.getTimeout() + "ms");
 		}
 	}
