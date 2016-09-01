@@ -114,7 +114,7 @@ public class CommandLine {
 
 	public CommandLine environment(final String name, final String value) {
 		if (environment == null) {
-			environment = new HashMap<String, String>();
+			environment = new HashMap<>();
 		}
 		environment.put(name, value);
 		return this;
@@ -188,7 +188,7 @@ public class CommandLine {
 		if (stderr != null) {
 			stderrPipe = new PipeRunnable(process.getErrorStream(), stderr);
 			threadPool.execute(stderrPipe);
-			stdoutPipe.waitForStart(PIPE_RUNNABLE_START_TIMEOUT);
+			stderrPipe.waitForStart(PIPE_RUNNABLE_START_TIMEOUT);
 		}
 
 		if (stdinBytes != null) {
