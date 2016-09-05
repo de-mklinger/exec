@@ -104,20 +104,28 @@ public class Cmd {
 		}
 
 		if (cmdSettings.getStdout() == null) {
-			try {
-				stdOutNullFile = new NullFile();
-			} catch (final IOException e) {
-				throw new CommandLineException("Error creating null file", e);
+			if (cmdSettings.getStdoutFile() != null) {
+				pb.redirectOutput(Redirect.to(cmdSettings.getStdoutFile()));
+			} else {
+				try {
+					stdOutNullFile = new NullFile();
+				} catch (final IOException e) {
+					throw new CommandLineException("Error creating null file", e);
+				}
+				pb.redirectOutput(Redirect.to(stdOutNullFile.getFile()));
 			}
-			pb.redirectOutput(Redirect.to(stdOutNullFile.getFile()));
 		}
 		if (cmdSettings.getStderr() == null) {
-			try {
-				stdErrNullFile = new NullFile();
-			} catch (final IOException e) {
-				throw new CommandLineException("Error creating null file", e);
+			if (cmdSettings.getStderrFile() != null) {
+				pb.redirectError(Redirect.to(cmdSettings.getStderrFile()));
+			} else {
+				try {
+					stdErrNullFile = new NullFile();
+				} catch (final IOException e) {
+					throw new CommandLineException("Error creating null file", e);
+				}
+				pb.redirectError(Redirect.to(stdErrNullFile.getFile()));
 			}
-			pb.redirectError(Redirect.to(stdErrNullFile.getFile()));
 		}
 
 		try {

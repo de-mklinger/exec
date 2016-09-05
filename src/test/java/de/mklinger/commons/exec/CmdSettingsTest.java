@@ -34,6 +34,11 @@ public class CmdSettingsTest extends BeanTestBase<CmdSettings> {
 	}
 
 	@Override
+	protected String[] getIgnorePropertyNames() {
+		return new String[] { "frozen" };
+	}
+
+	@Override
 	protected Object createValue(final Type type) {
 		if (type == OutputStream.class) {
 			return ClosedOutputStream.CLOSED_OUTPUT_STREAM;

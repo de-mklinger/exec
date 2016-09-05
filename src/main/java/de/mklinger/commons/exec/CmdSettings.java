@@ -21,16 +21,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
 public class CmdSettings {
+	private static final Logger LOG = LoggerFactory.getLogger(CmdSettings.class);
+
 	private ExecutorProvider executorProvider;
 	private List<String> command;
 	private File directory;
 	private int expectedExitValue = 0;
 	private OutputStream stdout;
+	private File stdoutFile;
 	private OutputStream stderr;
+	private File stderrFile;
 	private Pingable pingable = null;
 	private byte[] stdinBytes;
 	private Map<String, String> environment;
@@ -54,7 +61,9 @@ public class CmdSettings {
 		this.directory = cmdSettings.directory;
 		this.expectedExitValue = cmdSettings.expectedExitValue;
 		this.stdout = cmdSettings.stdout;
+		this.stdoutFile = cmdSettings.stdoutFile;
 		this.stderr = cmdSettings.stderr;
+		this.stderrFile = cmdSettings.stderrFile;
 		this.pingable = cmdSettings.pingable;
 		if (cmdSettings.stdinBytes != null) {
 			this.stdinBytes = new byte[cmdSettings.stdinBytes.length];
@@ -102,7 +111,22 @@ public class CmdSettings {
 
 	public void setStdout(final OutputStream stdout) {
 		checkFrozen();
+		if (this.stdoutFile != null) {
+			LOG.warn("Setting stdout stream when stdout file is already set");
+		}
 		this.stdout = stdout;
+	}
+
+	public File getStdoutFile() {
+		return stdoutFile;
+	}
+
+	public void setStdoutFile(final File stdoutFile) {
+		checkFrozen();
+		if (this.stdout != null) {
+			LOG.warn("Setting stdout file when stdout stream is already set");
+		}
+		this.stdoutFile = stdoutFile;
 	}
 
 	public OutputStream getStderr() {
@@ -111,7 +135,22 @@ public class CmdSettings {
 
 	public void setStderr(final OutputStream stderr) {
 		checkFrozen();
+		if (this.stderrFile != null) {
+			LOG.warn("Setting stderr stream when stdout file is already set");
+		}
 		this.stderr = stderr;
+	}
+
+	public File getStderrFile() {
+		return stderrFile;
+	}
+
+	public void setStderrFile(final File stderrFile) {
+		checkFrozen();
+		if (this.stderr != null) {
+			LOG.warn("Setting stderr file when stderr stream is already set");
+		}
+		this.stderrFile = stderrFile;
 	}
 
 	public Pingable getPingable() {

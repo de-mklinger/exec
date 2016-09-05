@@ -34,8 +34,18 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 		return getBuilder();
 	}
 
+	public B stdout(final File stdout) {
+		cmdSettings.setStdoutFile(stdout);
+		return getBuilder();
+	}
+
 	public B stderr(final OutputStream stderr) {
 		cmdSettings.setStderr(stderr);
+		return getBuilder();
+	}
+
+	public B stderr(final File stderr) {
+		cmdSettings.setStderrFile(stderr);
 		return getBuilder();
 	}
 
