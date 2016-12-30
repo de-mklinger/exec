@@ -33,6 +33,7 @@ public class PipeRunnable extends ErrorHandlingRunnable {
 	private final InputStream in;
 	private final AtomicBoolean running = new AtomicBoolean();
 	private final AtomicBoolean started = new AtomicBoolean();
+	private volatile Thread runningThread;
 
 	public PipeRunnable(final InputStream in, final OutputStream out) {
 		this.in = in;
@@ -41,6 +42,7 @@ public class PipeRunnable extends ErrorHandlingRunnable {
 
 	@Override
 	protected void doRun() throws IOException {
+		runningThread = Thread.currentThread();
 		running.set(true);
 		started.set(true);
 		try {
@@ -48,6 +50,7 @@ public class PipeRunnable extends ErrorHandlingRunnable {
 			LOG.debug("Copied {} bytes", copied);
 		} finally {
 			running.set(false);
+			runningThread = null;
 		}
 	}
 
@@ -72,6 +75,18 @@ public class PipeRunnable extends ErrorHandlingRunnable {
 				throw new CommandLineException("Timout waiting for pipe to stop after " + timeoutMillis + " ms");
 			}
 			Thread.sleep(1);
+		}
+	}
+
+	public void interrupt() {
+		if (runningThread != null) {
+			runningThread.interrupt();
+		}
+	}
+
+	public void closeIn() throws IOException {
+		if (in != null) {
+			in.close();
 		}
 	}
 }

@@ -91,6 +91,11 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 		return getBuilder();
 	}
 
+	public B destroyForcibly(final boolean destroyForcibly) {
+		cmdSettings.setDestroyForcibly(destroyForcibly);
+		return getBuilder();
+	}
+
 	public B args(final Object... arguments) {
 		if (cmdSettings.getCommand() == null) {
 			cmdSettings.setCommand(new ArrayList<String>());

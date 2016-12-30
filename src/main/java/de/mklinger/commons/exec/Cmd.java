@@ -45,7 +45,7 @@ public class Cmd {
 				synchronized (destroyOnShutdownCmds) {
 					for (final Iterator<Cmd> iterator = destroyOnShutdownCmds.iterator(); iterator.hasNext();) {
 						final Cmd cmd = iterator.next();
-						cmd.destroyProcess();
+						cmd.destroy();
 						iterator.remove();
 					}
 				}
@@ -206,61 +206,24 @@ public class Cmd {
 								destroyOnShutdownCmds.remove(this);
 							}
 						}
-					} catch (final CommandLineException e) {
-						if (cmdSettings.isDestroyOnError()) {
-							LOG.debug("Destroying on error", e);
-							destroy();
-						}
-						throwedException = e;
-						throw e;
-					} catch (final InterruptedException e) {
-						if (cmdSettings.isDestroyOnError()) {
-							LOG.debug("Destroying on error", e);
-							destroy();
-						}
-						throwedException = e;
-						throw e;
 					} catch (final Exception e) {
-						if (cmdSettings.isDestroyOnError()) {
-							LOG.debug("Destroying on error", e);
-							destroy();
-						}
-						final CommandLineException ex = new CommandLineException(e);
-						throwedException = ex;
-						throw ex;
+						throwedException = handleExecutionException(throwedException, e);
+						throw throwedException;
 					} finally {
-						if (stdoutPipe != null) {
-							stdoutPipe.waitForStop(PIPE_RUNNABLE_STOP_TIMEOUT);
-							if (stdoutPipe.getError() != null) {
-								final CommandLineException ex = new CommandLineException("Error reading stdout", stdoutPipe.getError());
-								if (throwedException != null) {
-									throwedException.addSuppressed(ex);
-								} else {
-									throwedException = ex;
-									throw ex;
-								}
-							}
-						}
+						stopPipe(stdoutPipe, "stdout", PIPE_RUNNABLE_STOP_TIMEOUT, throwedException);
 					}
 				} finally {
-					if (stderrPipe != null) {
-						stderrPipe.waitForStop(PIPE_RUNNABLE_STOP_TIMEOUT);
-						if (stderrPipe.getError() != null) {
-							final CommandLineException ex = new CommandLineException("Error reading stderr", stderrPipe.getError());
-							if (throwedException != null) {
-								throwedException.addSuppressed(ex);
-							} else {
-								throwedException = ex;
-								throw ex;
-							}
-						}
-					}
+					stopPipe(stderrPipe, "stderr", PIPE_RUNNABLE_STOP_TIMEOUT, throwedException);
 				}
 			} finally {
 				if (pingRunnable != null) {
 					pingRunnable.interrupt();
 				}
 			}
+		} catch (CommandLineException | InterruptedException | RuntimeException e) {
+			throw e;
+		} catch (final Exception e) {
+			throw new CommandLineException(e);
 		} finally {
 			pingRunnable = null;
 			stdoutPipe = null;
@@ -272,6 +235,53 @@ public class Cmd {
 			throw new ExitCodeException("Error executing command: " + cmdSettings.getCommand() + ". Exit value: " + exitValue, cmdSettings.getExpectedExitValue(), exitValue);
 		}
 		return exitValue;
+	}
+
+	private void stopPipe(final PipeRunnable pipe, final String name, final long timeout, Exception throwedException) throws Exception {
+		try {
+			if (pipe != null) {
+				pipe.waitForStop(timeout);
+				if (pipe.getError() != null) {
+					final CommandLineException ex = new CommandLineException("Error reading " + name, pipe.getError());
+					if (throwedException != null) {
+						throwedException.addSuppressed(ex);
+					} else {
+						throwedException = ex;
+						throw ex;
+					}
+				}
+			}
+		} catch (final Exception e) {
+			throwedException = handleExecutionException(throwedException, e);
+			throw throwedException;
+		} finally {
+			if (pipe != null) {
+				pipe.interrupt();
+			}
+		}
+	}
+
+	private Exception handleExecutionException(final Exception mainException, final Exception newException) {
+		final Exception e = withSuppressed(mainException, newException);
+		if (cmdSettings.isDestroyOnError()) {
+			LOG.debug("Destroying on error", e);
+			destroy();
+		}
+		if (newException instanceof InterruptedException) {
+			Thread.currentThread().interrupt();
+		}
+		return e;
+	}
+
+	private Exception withSuppressed(final Exception mainException, final Exception newException) {
+		if (mainException == null) {
+			return newException;
+		} else {
+			if (mainException != newException) {
+				mainException.addSuppressed(newException);
+			}
+			return mainException;
+		}
 	}
 
 	private int doWaitFor() throws InterruptedException, CommandLineException {
@@ -310,29 +320,106 @@ public class Cmd {
 	}
 
 	public void destroy() {
-		destroyProcess();
-		closeResources();
-		if (cmdSettings.isDestroyOnShutdown()) {
-			synchronized (destroyOnShutdownCmds) {
-				destroyOnShutdownCmds.remove(this);
-			}
-		}
+		destroy(cmdSettings.isDestroyForcibly());
 	}
 
-	private void closeResources() {
-		if (stdOutNullFile != null) {
-			stdOutNullFile.cleanup();
+	public void destroyForcibly() {
+		destroy(true);
+	}
+
+	private void destroy(final boolean force) {
+		Exception throwedException = null;
+
+		try {
+			if (force) {
+				destroyProcessForcibly();
+			} else {
+				destroyProcess();
+			}
+		} catch (final Exception e) {
+			throwedException = withSuppressed(throwedException, e);
+		}
+
+		try {
+			if (pingRunnable != null) {
+				pingRunnable.interrupt();
+			}
+		} catch (final Exception e) {
+			throwedException = withSuppressed(throwedException, e);
+		} finally {
+			pingRunnable = null;
+		}
+
+		try {
+			if (stdoutPipe != null) {
+				stdoutPipe.interrupt();
+				stdoutPipe.closeIn();
+			}
+		} catch (final Exception e) {
+			throwedException = withSuppressed(throwedException, e);
+		} finally {
+			stdoutPipe = null;
+		}
+
+		try {
+			if (stderrPipe != null) {
+				stderrPipe.interrupt();
+				stderrPipe.closeIn();
+			}
+		} catch (final Exception e) {
+			throwedException = withSuppressed(throwedException, e);
+		} finally {
+			stderrPipe = null;
+		}
+
+		try {
+			if (stdOutNullFile != null) {
+				stdOutNullFile.cleanup();
+			}
+		} catch (final Exception e) {
+			throwedException = withSuppressed(throwedException, e);
+		} finally {
 			stdOutNullFile = null;
 		}
-		if (stdErrNullFile != null) {
-			stdErrNullFile.cleanup();
+
+		try {
+			if (stdErrNullFile != null) {
+				stdErrNullFile.cleanup();
+			}
+		} catch (final Exception e) {
+			throwedException = withSuppressed(throwedException, e);
+		} finally {
 			stdErrNullFile = null;
+		}
+
+		try {
+			if (cmdSettings.isDestroyOnShutdown()) {
+				synchronized (destroyOnShutdownCmds) {
+					destroyOnShutdownCmds.remove(this);
+				}
+			}
+		} catch (final Exception e) {
+			throwedException = withSuppressed(throwedException, e);
+		}
+
+		if (throwedException != null) {
+			if (throwedException instanceof RuntimeException) {
+				throw (RuntimeException)throwedException;
+			} else {
+				throw new RuntimeException(throwedException);
+			}
 		}
 	}
 
 	private void destroyProcess() {
 		if (process != null) {
 			process.destroy();
+		}
+	}
+
+	private void destroyProcessForcibly() {
+		if (process != null) {
+			process.destroyForcibly();
 		}
 	}
 

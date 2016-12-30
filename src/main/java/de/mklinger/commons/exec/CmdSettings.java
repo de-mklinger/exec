@@ -44,6 +44,7 @@ public class CmdSettings {
 	private long timeout;
 	private boolean destroyOnError = true;
 	private boolean destroyOnShutdown = true;
+	private boolean destroyForcibly = false;
 	private boolean frozen;
 
 	/**
@@ -75,6 +76,7 @@ public class CmdSettings {
 		this.timeout = cmdSettings.timeout;
 		this.destroyOnError = cmdSettings.destroyOnError;
 		this.destroyOnShutdown = cmdSettings.destroyOnShutdown;
+		this.destroyForcibly = cmdSettings.destroyForcibly;
 		this.executorProvider = cmdSettings.executorProvider;
 	}
 
@@ -206,6 +208,15 @@ public class CmdSettings {
 	public void setDestroyOnShutdown(final boolean destroyOnShutdown) {
 		checkFrozen();
 		this.destroyOnShutdown = destroyOnShutdown;
+	}
+
+	public boolean isDestroyForcibly() {
+		return destroyForcibly;
+	}
+
+	public void setDestroyForcibly(final boolean destroyForcibly) {
+		checkFrozen();
+		this.destroyForcibly = destroyForcibly;
 	}
 
 	public void setExecutorProvider(final ExecutorProvider executorProvider) {

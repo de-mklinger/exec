@@ -16,7 +16,7 @@
 package de.mklinger.commons.exec;
 
 public class PingRunnable extends ErrorHandlingRunnable {
-	private Thread runningThread;
+	private volatile Thread runningThread;
 	private final Pingable pingable;
 
 	public PingRunnable(final Pingable pingable) {
@@ -26,25 +26,31 @@ public class PingRunnable extends ErrorHandlingRunnable {
 	@Override
 	public void doRun() {
 		runningThread = Thread.currentThread();
-		while (true) {
-			if (Thread.currentThread().isInterrupted()) {
-				return;
+		try {
+			while (true) {
+				if (Thread.currentThread().isInterrupted()) {
+					return;
+				}
+				pingable.ping();
+				if (Thread.currentThread().isInterrupted()) {
+					return;
+				}
+				try {
+					Thread.sleep(500);
+				} catch (final InterruptedException e) {
+					// we expect to be interrupted when done.
+					Thread.currentThread().interrupt();
+					return;
+				}
 			}
-			pingable.ping();
-			if (Thread.currentThread().isInterrupted()) {
-				return;
-			}
-			try {
-				Thread.sleep(500);
-			} catch (final InterruptedException e) {
-				// we expect to be interrupted when done.
-				Thread.currentThread().interrupt();
-				return;
-			}
+		} finally {
+			runningThread = null;
 		}
 	}
 
 	public void interrupt() {
-		runningThread.interrupt();
+		if (runningThread != null) {
+			runningThread.interrupt();
+		}
 	}
 }
