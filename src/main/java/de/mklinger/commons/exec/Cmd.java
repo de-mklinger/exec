@@ -115,7 +115,8 @@ public class Cmd {
 				pb.redirectOutput(Redirect.to(stdOutNullFile.getFile()));
 			}
 		}
-		if (cmdSettings.getStderr() == null) {
+
+		if (!cmdSettings.isRedirectErrorStream() && cmdSettings.getStderr() == null) {
 			if (cmdSettings.getStderrFile() != null) {
 				pb.redirectError(Redirect.to(cmdSettings.getStderrFile()));
 			} else {
@@ -126,6 +127,10 @@ public class Cmd {
 				}
 				pb.redirectError(Redirect.to(stdErrNullFile.getFile()));
 			}
+		}
+
+		if (cmdSettings.isRedirectErrorStream()) {
+			pb.redirectErrorStream(true);
 		}
 
 		try {
@@ -150,7 +155,7 @@ public class Cmd {
 			execute(stdoutPipe);
 			stdoutPipe.waitForStart(PIPE_RUNNABLE_START_TIMEOUT);
 		}
-		if (cmdSettings.getStderr() != null) {
+		if (!cmdSettings.isRedirectErrorStream() && cmdSettings.getStderr() != null) {
 			stderrPipe = new PipeRunnable(process.getErrorStream(), cmdSettings.getStderr());
 			execute(stderrPipe);
 			stderrPipe.waitForStart(PIPE_RUNNABLE_START_TIMEOUT);

@@ -38,6 +38,7 @@ public class CmdSettings {
 	private File stdoutFile;
 	private OutputStream stderr;
 	private File stderrFile;
+	private boolean redirectErrorStream = false;
 	private Pingable pingable = null;
 	private byte[] stdinBytes;
 	private Map<String, String> environment;
@@ -65,6 +66,7 @@ public class CmdSettings {
 		this.stdoutFile = cmdSettings.stdoutFile;
 		this.stderr = cmdSettings.stderr;
 		this.stderrFile = cmdSettings.stderrFile;
+		this.redirectErrorStream = cmdSettings.redirectErrorStream;
 		this.pingable = cmdSettings.pingable;
 		if (cmdSettings.stdinBytes != null) {
 			this.stdinBytes = new byte[cmdSettings.stdinBytes.length];
@@ -153,6 +155,14 @@ public class CmdSettings {
 			LOG.warn("Setting stderr file when stderr stream is already set");
 		}
 		this.stderrFile = stderrFile;
+	}
+
+	public void setRedirectErrorStream(final boolean redirectErrorStream) {
+		this.redirectErrorStream = redirectErrorStream;
+	}
+
+	public boolean isRedirectErrorStream() {
+		return redirectErrorStream;
 	}
 
 	public Pingable getPingable() {

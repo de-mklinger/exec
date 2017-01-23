@@ -49,6 +49,11 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 		return getBuilder();
 	}
 
+	public B redirectErrorStream(final boolean redirectErrorStream) {
+		cmdSettings.setRedirectErrorStream(redirectErrorStream);
+		return getBuilder();
+	}
+
 	public B stdin(final byte[] stdinBytes) {
 		cmdSettings.setStdinBytes(stdinBytes);
 		return getBuilder();
