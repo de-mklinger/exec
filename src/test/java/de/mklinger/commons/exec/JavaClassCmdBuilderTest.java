@@ -96,7 +96,7 @@ public class JavaClassCmdBuilderTest {
 
 		String osPathSep = System.getProperty("path.separator");
 		final List<String> expectedArgs = new ArrayList<>();
-		expectedArgs.add("-Xbootclasspath/p" + osPathSep + bootClassPathEntry.getAbsolutePath());
+		expectedArgs.add("-Xbootclasspath/p:" + bootClassPathEntry.getAbsolutePath());
 		expectedArgs.add("de.mklinger.test.MyClass");
 		expectedArgs.add("arg1");
 		Assert.assertEquals(expectedArgs, actualArgs);
@@ -115,7 +115,7 @@ public class JavaClassCmdBuilderTest {
 
 		String osPathSep = System.getProperty("path.separator");
 		final List<String> expectedArgs = new ArrayList<>();
-		expectedArgs.add("-Xbootclasspath" + osPathSep + bootClassPathEntry.getAbsolutePath());
+		expectedArgs.add("-Xbootclasspath:" + bootClassPathEntry.getAbsolutePath());
 		expectedArgs.add("de.mklinger.test.MyClass");
 		expectedArgs.add("arg1");
 		Assert.assertEquals(expectedArgs, actualArgs);
@@ -134,7 +134,7 @@ public class JavaClassCmdBuilderTest {
 
 		String osPathSep = System.getProperty("path.separator");
 		final List<String> expectedArgs = new ArrayList<>();
-		expectedArgs.add("-Xbootclasspath/a" + osPathSep + bootClassPathEntry.getAbsolutePath());
+		expectedArgs.add("-Xbootclasspath/a:" + bootClassPathEntry.getAbsolutePath());
 		expectedArgs.add("de.mklinger.test.MyClass");
 		expectedArgs.add("arg1");
 		Assert.assertEquals(expectedArgs, actualArgs);

@@ -128,11 +128,9 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 	}
 
 	private String buildBootClassPath(List<File> bootClasspathAdditions, String bootClasspathSuffix) {
-		String osDependentPathSeparator = System.getProperty("path.separator");
-		StringBuilder sb = new StringBuilder(bootClasspathAdditions.size()*2 + 1);
-		sb.append("-Xbootclasspath" + bootClasspathSuffix + osDependentPathSeparator);
+		StringBuilder sb = new StringBuilder("-Xbootclasspath").append(bootClasspathSuffix).append(":");
 		for (File bootClasspathAddition : bootClasspathAdditions) {
-			sb.append(bootClasspathAddition.getAbsoluteFile()).append(osDependentPathSeparator);
+			sb.append(bootClasspathAddition.getAbsoluteFile()).append(File.pathSeparator);
 		}
 		sb.delete(sb.length() - 1, sb.length());
 		return sb.toString();
