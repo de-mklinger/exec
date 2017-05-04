@@ -15,7 +15,9 @@
  */
 package de.mklinger.commons.exec;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Assert;
@@ -25,6 +27,7 @@ import org.junit.Test;
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
 public class JavaClassCmdBuilderTest {
+
 	@Test
 	public void test() {
 		final CmdSettings cmdSettings = new JavaClassCmdBuilder("de.mklinger.test.MyClass")
@@ -56,4 +59,85 @@ public class JavaClassCmdBuilderTest {
 
 		Assert.assertEquals(expectedArgs, actualArgs);
 	}
+
+	@Test
+	public void testAdditionalJavaOption() {
+		File bootClassPathEntry = new File("");
+		final CmdSettings cmdSettings = new JavaClassCmdBuilder("de.mklinger.test.MyClass")
+				.arg("arg1")
+				.arg("arg2")
+				.xmx("1g")
+				.addJavaOption("-XX:EnableWarpSpeed")
+				.toCmdSettings();
+
+		final List<String> actualArgs = new ArrayList<>(cmdSettings.getCommand());
+		actualArgs.remove(0);
+
+		String osPathSep = System.getProperty("path.separator");
+		final List<String> expectedArgs = new ArrayList<>();
+		expectedArgs.add("-XX:EnableWarpSpeed");
+		expectedArgs.add("-Xmx1g");
+		expectedArgs.add("de.mklinger.test.MyClass");
+		expectedArgs.add("arg1");
+		expectedArgs.add("arg2");
+		Assert.assertEquals(expectedArgs, actualArgs);
+	}
+
+	@Test
+	public void testBootClassPathPrependAdditions() {
+		File bootClassPathEntry = new File("");
+		final CmdSettings cmdSettings = new JavaClassCmdBuilder("de.mklinger.test.MyClass")
+				.arg("arg1")
+				.bootClassPathPrepended(Collections.singletonList(bootClassPathEntry))
+				.toCmdSettings();
+
+		final List<String> actualArgs = new ArrayList<>(cmdSettings.getCommand());
+		actualArgs.remove(0);
+
+		String osPathSep = System.getProperty("path.separator");
+		final List<String> expectedArgs = new ArrayList<>();
+		expectedArgs.add("-Xbootclasspath/p:" + bootClassPathEntry.getAbsolutePath());
+		expectedArgs.add("de.mklinger.test.MyClass");
+		expectedArgs.add("arg1");
+		Assert.assertEquals(expectedArgs, actualArgs);
+	}
+
+	@Test
+	public void testBootClassPathReplacement() {
+		File bootClassPathEntry = new File("");
+		final CmdSettings cmdSettings = new JavaClassCmdBuilder("de.mklinger.test.MyClass")
+				.arg("arg1")
+				.bootClassPathReplace(Collections.singletonList(bootClassPathEntry))
+				.toCmdSettings();
+
+		final List<String> actualArgs = new ArrayList<>(cmdSettings.getCommand());
+		actualArgs.remove(0);
+
+		String osPathSep = System.getProperty("path.separator");
+		final List<String> expectedArgs = new ArrayList<>();
+		expectedArgs.add("-Xbootclasspath:" + bootClassPathEntry.getAbsolutePath());
+		expectedArgs.add("de.mklinger.test.MyClass");
+		expectedArgs.add("arg1");
+		Assert.assertEquals(expectedArgs, actualArgs);
+	}
+
+	@Test
+	public void testBootClassPathAppend() {
+		File bootClassPathEntry = new File("");
+		final CmdSettings cmdSettings = new JavaClassCmdBuilder("de.mklinger.test.MyClass")
+				.arg("arg1")
+				.bootClassPathAppend(Collections.singletonList(bootClassPathEntry))
+				.toCmdSettings();
+
+		final List<String> actualArgs = new ArrayList<>(cmdSettings.getCommand());
+		actualArgs.remove(0);
+
+		String osPathSep = System.getProperty("path.separator");
+		final List<String> expectedArgs = new ArrayList<>();
+		expectedArgs.add("-Xbootclasspath/a:" + bootClassPathEntry.getAbsolutePath());
+		expectedArgs.add("de.mklinger.test.MyClass");
+		expectedArgs.add("arg1");
+		Assert.assertEquals(expectedArgs, actualArgs);
+	}
+
 }
