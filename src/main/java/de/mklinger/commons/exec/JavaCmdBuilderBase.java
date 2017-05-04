@@ -26,10 +26,24 @@ import java.util.List;
 public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends CmdBuilderBase<B> {
 	private String javaExecutable;
 	private List<String> javaOpts;
-	private String bootClassPathOption;
 
 	public B javaExecutable(final String javaExecutable) {
 		this.javaExecutable = javaExecutable;
+		return getBuilder();
+	}
+
+	public B javaExecutableFromRuntime() {
+		JavaHome javaHome = JavaHome.getByRuntime();
+		if (javaHome == null) {
+			throw new IllegalStateException("No valid current JavaRuntime could be determined!");
+		}
+		File javaExecFile = javaHome.getJavaExecutable();
+		if (javaExecFile == null) {
+			throw new IllegalStateException(
+					"Current Java-runtime is valid, but no executable 'java' file could be found in javaHome: " +
+							javaHome.getJavaHome().getAbsolutePath());
+		}
+		javaExecutable = javaExecFile.getAbsolutePath();
 		return getBuilder();
 	}
 
@@ -192,14 +206,13 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 					if (javaHome == null) {
 						javaHome = JavaHome.getByRuntime();
 					}
-					if (javaHome == null) {
-						return "java";
+					if (javaHome != null) {
+						final File java = javaHome.getJavaExecutable();
+						if (java != null) {
+							defaultJavaExecutable = java.getAbsolutePath();
+						}
 					}
-					final File java = javaHome.getJavaExecutable();
-					if (java == null) {
-						return "java";
-					}
-					return java.getAbsolutePath();
+					defaultJavaExecutable = "java";
 				}
 			}
 		}
