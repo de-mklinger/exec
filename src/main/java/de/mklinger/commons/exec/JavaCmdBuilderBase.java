@@ -17,17 +17,17 @@ package de.mklinger.commons.exec;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
 public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends CmdBuilderBase<B> {
 	private String javaExecutable;
-	private Map<String, String> javaOpts;
+	private List<String> javaOpts;
+	private String bootClassPathOption;
 
 	public B javaExecutable(final String javaExecutable) {
 		this.javaExecutable = javaExecutable;
@@ -101,23 +101,60 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 		return getBuilder();
 	}
 
-	private void addJavaOption(final String key, final String value, final boolean useEquals) {
-		if (value == null) {
-			if (javaOpts != null) {
-				javaOpts.remove(key);
-			}
-		} else {
-			if (javaOpts == null) {
-				javaOpts = new HashMap<>();
-			}
-			String fullValue;
-			if (useEquals) {
-				fullValue = key + "=" + value;
-			} else {
-				fullValue = key + value;
-			}
-			javaOpts.put(key, fullValue);
+	public B bootClassPathPrepended(List<File> bootClassPathAdditions) {
+		if (bootClassPathAdditions == null || bootClassPathAdditions.isEmpty()) {
+			return getBuilder();
 		}
+		String bootClassPathOption = buildBootClassPath(bootClassPathAdditions, "/p");
+		addJavaOption(bootClassPathOption);
+		return getBuilder();
+	}
+
+	public B bootClassPathReplace(List<File> bootClassPathEntries) {
+		if (bootClassPathEntries == null || bootClassPathEntries.isEmpty()) {
+			throw new IllegalArgumentException("BootClasspathEntries cannot be null or empty!");
+		}
+		String bootClassPathOption = buildBootClassPath(bootClassPathEntries, "");
+		addJavaOption(bootClassPathOption);
+		return getBuilder();
+	}
+
+	public B bootClassPathAppend(List<File> bootClassPathAdditions) {
+		if (bootClassPathAdditions == null || bootClassPathAdditions.isEmpty()) {
+			return getBuilder();
+		}
+		String bootClassPathOption = buildBootClassPath(bootClassPathAdditions, "/a");
+		addJavaOption(bootClassPathOption);
+		return getBuilder();
+	}
+
+	private String buildBootClassPath(List<File> bootClasspathAdditions, String bootClasspathSuffix) {
+		String osDependentPathSeparator = System.getProperty("path.separator");
+		StringBuilder sb = new StringBuilder(bootClasspathAdditions.size()*2 + 1);
+		sb.append("-Xbootclasspath" + bootClasspathSuffix + osDependentPathSeparator);
+		for (File bootClasspathAddition : bootClasspathAdditions) {
+			sb.append(bootClasspathAddition.getAbsoluteFile()).append(osDependentPathSeparator);
+		}
+		sb.delete(sb.length() - 1, sb.length());
+		return sb.toString();
+	}
+
+	private void addJavaOption(final String key, final String value, final boolean useEquals) {
+		String fullValue;
+		if (useEquals) {
+			fullValue = key + "=" + value;
+		} else {
+			fullValue = key + value;
+		}
+		addJavaOption(fullValue);
+	}
+
+	public B addJavaOption(final String option) {
+		if (javaOpts == null) {
+			javaOpts = new LinkedList<>();
+		}
+		javaOpts.add(option);
+		return getBuilder();
 	}
 
 	@Override
@@ -135,15 +172,9 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 
 	protected List<String> getJavaCommandParts() {
 		final List<String> additionalCommandParts = new LinkedList<>();
-		if (javaOpts != null) {
-			for (final String javaOpt : javaOpts.values()) {
-				additionalCommandParts.add(javaOpt);
-			}
-			if (javaOpts.size() > 1) {
-				Collections.sort(additionalCommandParts);
-			}
-		}
-		additionalCommandParts.add(0, getActualJavaExecutable());
+		additionalCommandParts.add(getActualJavaExecutable());
+		Collections.sort(javaOpts);
+		additionalCommandParts.addAll(javaOpts);
 		return additionalCommandParts;
 	}
 
