@@ -27,6 +27,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * A command. It may be not be started yet, it may be running right now or it may be terminated.
+ * Other parties (i.e. Threads) may be waiting for it to terminate or doing progress.
+ * <p>
+ * Instances of this class should usually be created using {@link CmdBuilder}.
+ * </p>
+ *
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
 public class Cmd {

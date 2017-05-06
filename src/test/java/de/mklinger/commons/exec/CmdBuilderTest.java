@@ -32,6 +32,19 @@ import org.junit.Test;
  */
 public class CmdBuilderTest {
 	@Test
+	public void example() throws CommandLineException {
+		final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+		new CmdBuilder("ls")
+		.arg("-l")
+		.directory(new File("/etc"))
+		.stdout(stdout)
+		.toCmd()
+		.execute();
+		final String output = stdout.toString();
+		System.out.println(output);
+	}
+
+	@Test
 	public void testCommandString() {
 		final CmdBuilder cb = new CmdBuilder("command");
 		final CmdSettings cmdSettings = cb.toCmdSettings();

@@ -18,9 +18,21 @@ package de.mklinger.commons.exec;
 import java.io.File;
 
 /**
+ * The main entry point for using the Exec library. Fluent API for creating
+ * {@link Cmd} instances.
+ *
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
 public class CmdBuilder extends CmdBuilderBase<CmdBuilder> {
+	/**
+	 * Prepare command execution.
+	 *
+	 * @param command
+	 *            The command to execute on the underlying OS. The given String
+	 *            must be available as command on the PATH or must be absolute
+	 *            or must be relative to the current working directory of the
+	 *            VM.
+	 */
 	public CmdBuilder(final String command) {
 		if (command == null) {
 			throw new NullPointerException();
@@ -31,6 +43,15 @@ public class CmdBuilder extends CmdBuilderBase<CmdBuilder> {
 		arg(command);
 	}
 
+	/**
+	 * Prepare command execution.
+	 *
+	 * @param command
+	 *            The command to execute on the underlying OS. The given File
+	 *            must be executable on the underlying OS. It must be absolute
+	 *            or must be relative to the current working directory of the
+	 *            VM.
+	 */
 	public CmdBuilder(final File command) {
 		if (command == null) {
 			throw new NullPointerException();

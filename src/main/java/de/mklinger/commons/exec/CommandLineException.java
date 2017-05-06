@@ -16,6 +16,8 @@
 package de.mklinger.commons.exec;
 
 /**
+ * Thrown when something went wrong with command execution.
+ *
  * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public class CommandLineException extends Exception {

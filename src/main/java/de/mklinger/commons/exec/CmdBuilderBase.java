@@ -24,6 +24,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Base class for
+ * <ul>
+ * 	<li>{@link CmdBuilder)</li>
+ * 	<li>{@link JavaClassCmdBuilder)</li>
+ * 	<li>{@link JavaJarCmdBuilder)</li>
+ * </ul>
+ * and possibly others.
+ *
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
 public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {

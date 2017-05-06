@@ -16,6 +16,13 @@
 package de.mklinger.commons.exec;
 
 /**
+ * Runtime exception wrapper for {@link InterruptedException}.
+ * <p>
+ * Whenever this exception is thrown, the interrupted state of the throwing
+ * thread has been set to "interrupted" by calling {@code interrupt()} on the
+ * interrupted thread.
+ * </p>
+ *
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
 public class CommandLineInterruptedException extends RuntimeException {

@@ -183,12 +183,4 @@ public class CommandLineUtil {
 		final String arch = OS_ARCH;
 		return arch != null && arch.contains("64");
 	}
-
-	public static String escapeShellArg(final String s) {
-		if (s == null || s.isEmpty()) {
-			return "''";
-		}
-		final String escaped = s.replace("\'", "\\\'");
-		return "\'" + escaped + "\'";
-	}
 }
