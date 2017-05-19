@@ -31,16 +31,16 @@ public class JavaClassCmdBuilderTest {
 	@Test
 	public void test() {
 		final CmdSettings cmdSettings = new JavaClassCmdBuilder("de.mklinger.test.MyClass")
-		.arg("arg1")
-		.classpath("dir/*")
-		.arg("arg2")
-		.xmx("1g")
-		.xms("1g")
-		.maxPermSize("256m")
-		.classpath("anotherdir")
-		.systemProperty("myprop", "mypropvalue")
-		.systemProperty("mypropwithoutvalue")
-		.toCmdSettings();
+				.arg("arg1")
+				.classpath("dir/*")
+				.arg("arg2")
+				.xmx("1g")
+				.xms("1g")
+				.maxPermSize("256m")
+				.classpath("anotherdir")
+				.systemProperty("myprop", "mypropvalue")
+				.systemProperty("mypropwithoutvalue")
+				.toCmdSettings();
 
 		final List<String> actualArgs = new ArrayList<>(cmdSettings.getCommand());
 		actualArgs.remove(0);
@@ -52,7 +52,7 @@ public class JavaClassCmdBuilderTest {
 		expectedArgs.add("-Xms1g");
 		expectedArgs.add("-Xmx1g");
 		expectedArgs.add("-cp");
-		expectedArgs.add("dir/*:anotherdir");
+		expectedArgs.add("dir/*" + File.pathSeparator + "anotherdir");
 		expectedArgs.add("de.mklinger.test.MyClass");
 		expectedArgs.add("arg1");
 		expectedArgs.add("arg2");
@@ -62,7 +62,6 @@ public class JavaClassCmdBuilderTest {
 
 	@Test
 	public void testAdditionalJavaOption() {
-		File bootClassPathEntry = new File("");
 		final CmdSettings cmdSettings = new JavaClassCmdBuilder("de.mklinger.test.MyClass")
 				.arg("arg1")
 				.arg("arg2")
@@ -73,7 +72,6 @@ public class JavaClassCmdBuilderTest {
 		final List<String> actualArgs = new ArrayList<>(cmdSettings.getCommand());
 		actualArgs.remove(0);
 
-		String osPathSep = System.getProperty("path.separator");
 		final List<String> expectedArgs = new ArrayList<>();
 		expectedArgs.add("-XX:EnableWarpSpeed");
 		expectedArgs.add("-Xmx1g");
@@ -85,7 +83,7 @@ public class JavaClassCmdBuilderTest {
 
 	@Test
 	public void testBootClassPathPrependAdditions() {
-		File bootClassPathEntry = new File("");
+		final File bootClassPathEntry = new File("");
 		final CmdSettings cmdSettings = new JavaClassCmdBuilder("de.mklinger.test.MyClass")
 				.arg("arg1")
 				.bootClassPathPrepended(Collections.singletonList(bootClassPathEntry))
@@ -94,7 +92,6 @@ public class JavaClassCmdBuilderTest {
 		final List<String> actualArgs = new ArrayList<>(cmdSettings.getCommand());
 		actualArgs.remove(0);
 
-		String osPathSep = System.getProperty("path.separator");
 		final List<String> expectedArgs = new ArrayList<>();
 		expectedArgs.add("-Xbootclasspath/p:" + bootClassPathEntry.getAbsolutePath());
 		expectedArgs.add("de.mklinger.test.MyClass");
@@ -104,7 +101,7 @@ public class JavaClassCmdBuilderTest {
 
 	@Test
 	public void testBootClassPathReplacement() {
-		File bootClassPathEntry = new File("");
+		final File bootClassPathEntry = new File("");
 		final CmdSettings cmdSettings = new JavaClassCmdBuilder("de.mklinger.test.MyClass")
 				.arg("arg1")
 				.bootClassPathReplace(Collections.singletonList(bootClassPathEntry))
@@ -113,7 +110,6 @@ public class JavaClassCmdBuilderTest {
 		final List<String> actualArgs = new ArrayList<>(cmdSettings.getCommand());
 		actualArgs.remove(0);
 
-		String osPathSep = System.getProperty("path.separator");
 		final List<String> expectedArgs = new ArrayList<>();
 		expectedArgs.add("-Xbootclasspath:" + bootClassPathEntry.getAbsolutePath());
 		expectedArgs.add("de.mklinger.test.MyClass");
@@ -123,7 +119,7 @@ public class JavaClassCmdBuilderTest {
 
 	@Test
 	public void testBootClassPathAppend() {
-		File bootClassPathEntry = new File("");
+		final File bootClassPathEntry = new File("");
 		final CmdSettings cmdSettings = new JavaClassCmdBuilder("de.mklinger.test.MyClass")
 				.arg("arg1")
 				.bootClassPathAppend(Collections.singletonList(bootClassPathEntry))
@@ -132,7 +128,6 @@ public class JavaClassCmdBuilderTest {
 		final List<String> actualArgs = new ArrayList<>(cmdSettings.getCommand());
 		actualArgs.remove(0);
 
-		String osPathSep = System.getProperty("path.separator");
 		final List<String> expectedArgs = new ArrayList<>();
 		expectedArgs.add("-Xbootclasspath/a:" + bootClassPathEntry.getAbsolutePath());
 		expectedArgs.add("de.mklinger.test.MyClass");

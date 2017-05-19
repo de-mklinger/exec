@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>de.mklinger.maven</groupId>
 		<artifactId>maven-parent</artifactId>
-		<version>1.8</version>
+		<version>1.9</version>
 	</parent>
 
 	<groupId>de.mklinger.commons</groupId>
@@ -79,26 +79,6 @@
 	</dependencies>
 
 	<build>
-		<pluginManagement>
-			<plugins>
-				<!-- | Use 'mvn license:format -N' at top of project to add missing headers -->
-				<plugin>
-					<groupId>com.mycila</groupId>
-					<artifactId>license-maven-plugin</artifactId>
-					<version>2.6</version>
-					<configuration>
-						<encoding>UTF-8</encoding>
-						<header>header.txt</header>
-						<includes>
-							<include>**/*.java</include>
-						</includes>
-						<mapping>
-							<java>SLASHSTAR_STYLE</java>
-						</mapping>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.felix</groupId>

@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.easymock.EasyMock;
 import org.junit.Assert;
+import org.junit.AssumptionViolatedException;
 import org.junit.Test;
 
 /**
@@ -33,6 +34,10 @@ import org.junit.Test;
 public class CmdBuilderTest {
 	@Test
 	public void example() throws CommandLineException {
+		if (CommandLineUtil.isWindows()) {
+			throw new AssumptionViolatedException("ls command not available");
+		}
+
 		final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
 		new CmdBuilder("ls")
 		.arg("-l")
