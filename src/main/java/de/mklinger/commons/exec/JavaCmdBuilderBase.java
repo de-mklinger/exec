@@ -33,11 +33,11 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 	}
 
 	public B javaExecutableFromRuntime() {
-		JavaHome javaHome = JavaHome.getByRuntime();
+		final JavaHome javaHome = JavaHome.getByRuntime();
 		if (javaHome == null) {
 			throw new IllegalStateException("No valid current JavaRuntime could be determined!");
 		}
-		File javaExecFile = javaHome.getJavaExecutable();
+		final File javaExecFile = javaHome.getJavaExecutable();
 		if (javaExecFile == null) {
 			throw new IllegalStateException(
 					"Current Java-runtime is valid, but no executable 'java' file could be found in javaHome: " +
@@ -60,11 +60,10 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 	}
 
 	/**
-	 * Specifies the maximum size, in bytes, of the memory allocation
-	 * pool. This value must a multiple of 1024 greater than 2 MB.
-	 * Append the letter k or K to indicate kilobytes, or m or M to
-	 * indicate megabytes. The default value is chosen at runtime
-	 * based on system configuration.
+	 * Specifies the maximum size, in bytes, of the memory allocation pool. This
+	 * value must a multiple of 1024 greater than 2 MB. Append the letter k or K
+	 * to indicate kilobytes, or m or M to indicate megabytes. The default value
+	 * is chosen at runtime based on system configuration.
 	 * <p>
 	 * Examples:
 	 * <ul>
@@ -72,6 +71,9 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 	 * <li><code>"81920k"</code></li>
 	 * <li><code>"80m"</code></li>
 	 * </ul>
+	 *
+	 * @param value The Xmx value as described above.
+	 * @return This builder
 	 */
 	public B xmx(final String value) {
 		final String key = "-Xmx";
@@ -80,18 +82,21 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 	}
 
 	/**
-	 * Specifies the initial size, in bytes, of the memory allocation
-	 * pool. This value must be a multiple of 1024 greater than 1 MB.
-	 * Append the letter k or K to indicate kilobytes, or m or M to
-	 * indicate megabytes. The default value is chosen at runtime
-	 * based on system configuration.
+	 * Specifies the initial size, in bytes, of the memory allocation pool. This
+	 * value must be a multiple of 1024 greater than 1 MB. Append the letter k
+	 * or K to indicate kilobytes, or m or M to indicate megabytes. The default
+	 * value is chosen at runtime based on system configuration.
 	 * <p>
 	 * Examples:
+	 * </p>
 	 * <ul>
 	 * <li><code>"6291456"</code></li>
 	 * <li><code>"6144k"</code></li>
 	 * <li><code>"6m"</code></li>
 	 * </ul>
+	 *
+	 * @param value The Xms value as described above.
+	 * @return This builder
 	 */
 	public B xms(final String value) {
 		final String key = "-Xms";
@@ -100,7 +105,20 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 	}
 
 	/**
-	 * Sets the thread stack size.
+	 * Sets the thread stack size (in bytes). Append the letter k or K to
+	 * indicate KB, m or M to indicate MB, g or G to indicate GB. The default
+	 * value depends on virtual memory.
+	 * <p>
+	 * Examples:
+	 * </p>
+	 * <ul>
+	 * <li><code>"1m"</code></li>
+	 * <li><code>"1024k"</code></li>
+	 * <li><code>"1048576"</code></li>
+	 * </ul>
+	 *
+	 * @param value The Xss value as described above.
+	 * @return This builder
 	 */
 	public B xss(final String value) {
 		final String key = "-Xss";
@@ -114,36 +132,36 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 		return getBuilder();
 	}
 
-	public B bootClassPathPrepended(List<File> bootClassPathAdditions) {
+	public B bootClassPathPrepended(final List<File> bootClassPathAdditions) {
 		if (bootClassPathAdditions == null || bootClassPathAdditions.isEmpty()) {
 			return getBuilder();
 		}
-		String bootClassPathOption = buildBootClassPath(bootClassPathAdditions, "/p");
+		final String bootClassPathOption = buildBootClassPath(bootClassPathAdditions, "/p");
 		addJavaOption(bootClassPathOption);
 		return getBuilder();
 	}
 
-	public B bootClassPathReplace(List<File> bootClassPathEntries) {
+	public B bootClassPathReplace(final List<File> bootClassPathEntries) {
 		if (bootClassPathEntries == null || bootClassPathEntries.isEmpty()) {
 			throw new IllegalArgumentException("BootClasspathEntries cannot be null or empty!");
 		}
-		String bootClassPathOption = buildBootClassPath(bootClassPathEntries, "");
+		final String bootClassPathOption = buildBootClassPath(bootClassPathEntries, "");
 		addJavaOption(bootClassPathOption);
 		return getBuilder();
 	}
 
-	public B bootClassPathAppend(List<File> bootClassPathAdditions) {
+	public B bootClassPathAppend(final List<File> bootClassPathAdditions) {
 		if (bootClassPathAdditions == null || bootClassPathAdditions.isEmpty()) {
 			return getBuilder();
 		}
-		String bootClassPathOption = buildBootClassPath(bootClassPathAdditions, "/a");
+		final String bootClassPathOption = buildBootClassPath(bootClassPathAdditions, "/a");
 		addJavaOption(bootClassPathOption);
 		return getBuilder();
 	}
 
-	private String buildBootClassPath(List<File> bootClasspathAdditions, String bootClasspathSuffix) {
-		StringBuilder sb = new StringBuilder("-Xbootclasspath").append(bootClasspathSuffix).append(":");
-		for (File bootClasspathAddition : bootClasspathAdditions) {
+	private String buildBootClassPath(final List<File> bootClasspathAdditions, final String bootClasspathSuffix) {
+		final StringBuilder sb = new StringBuilder("-Xbootclasspath").append(bootClasspathSuffix).append(":");
+		for (final File bootClasspathAddition : bootClasspathAdditions) {
 			sb.append(bootClasspathAddition.getAbsoluteFile()).append(File.pathSeparator);
 		}
 		sb.delete(sb.length() - 1, sb.length());

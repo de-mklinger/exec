@@ -26,9 +26,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * Base class for
  * <ul>
- * 	<li>{@link CmdBuilder)</li>
- * 	<li>{@link JavaClassCmdBuilder)</li>
- * 	<li>{@link JavaJarCmdBuilder)</li>
+ * 	<li>{@link CmdBuilder}</li>
+ * 	<li>{@link JavaClassCmdBuilder}</li>
+ * 	<li>{@link JavaJarCmdBuilder}</li>
  * </ul>
  * and possibly others.
  *

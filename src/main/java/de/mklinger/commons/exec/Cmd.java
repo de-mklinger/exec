@@ -74,6 +74,11 @@ public class Cmd {
 
 	/**
 	 * Start the process and wait for it to exit.
+	 *
+	 * @throws CommandLineException in case of an error
+	 * @throws CommandLineInterruptedException if the waiting thread was
+	 *             interrupted. The interruption state of the current thread is
+	 *             set to interrupted.
 	 */
 	public void execute() throws CommandLineException {
 		try {
@@ -91,6 +96,8 @@ public class Cmd {
 	 * Start the process and return immediately. Cmds started with this
 	 * method must be {@link #close() closed} or {@link #destroy() destroyed}
 	 * at some point in future.
+	 *
+	 * @throws CommandLineException in case of an error
 	 */
 	public void start() throws CommandLineException {
 		final List<String> command = cmdSettings.getCommand();
@@ -202,7 +209,12 @@ public class Cmd {
 
 	/**
 	 * Wait for an already {@link #start() started} process.
+	 *
 	 * @return The process exit value.
+	 *
+	 * @throws CommandLineException in case of an error
+	 * @throws InterruptedException if the current thread is interrupted while
+	 *             waiting for the process to finish.
 	 */
 	public int waitFor() throws CommandLineException, InterruptedException {
 		final int exitValue;

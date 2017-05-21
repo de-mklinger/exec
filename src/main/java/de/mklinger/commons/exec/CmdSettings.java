@@ -55,8 +55,9 @@ public class CmdSettings {
 	}
 
 	/**
-	 * Create a copy of the given CmdSettings. The copy
-	 * is not frozen.
+	 * Create a copy of the given CmdSettings. The copy is not frozen.
+	 *
+	 * @param cmdSettings The settings to be copied
 	 */
 	public CmdSettings(final CmdSettings cmdSettings) {
 		this.command = cmdSettings.command;
