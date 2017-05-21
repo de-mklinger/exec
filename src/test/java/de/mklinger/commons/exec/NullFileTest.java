@@ -16,9 +16,11 @@
 package de.mklinger.commons.exec;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.junit.Assert;
+import org.junit.AssumptionViolatedException;
 import org.junit.Test;
 
 /**
@@ -27,6 +29,9 @@ import org.junit.Test;
 public class NullFileTest {
 	@Test
 	public void testNative() throws IOException {
+		if (CommandLineUtil.isWindows()) {
+			throw new AssumptionViolatedException("nul special file does not really exist in Windows");
+		}
 		try (final NullFile nf = new NullFile()) {
 			Assert.assertNotNull(nf.getFile());
 			Assert.assertTrue("Null file does not exist", nf.getFile().exists());
@@ -50,7 +55,7 @@ public class NullFileTest {
 	@Test
 	public void testIvalid() throws IOException {
 		final File[] f = new File[1];
-		try (final NullFile nf = new NullFile(new File("DOESNOTEXIST", String.valueOf(Math.random())))) {
+		try (final NullFile nf = new NullFile(null)) {
 			Assert.assertNotNull(nf.getFile());
 			Assert.assertTrue("Null file does not exist", nf.getFile().exists());
 			Assert.assertTrue("Cannot write null file", nf.getFile().canWrite());
@@ -58,5 +63,17 @@ public class NullFileTest {
 		}
 		Assert.assertNotNull(f[0]);
 		Assert.assertFalse("Null file does still exist", f[0].exists());
+	}
+
+	@Test
+	public void testWindows() throws IOException {
+		if (!CommandLineUtil.isWindows()) {
+			throw new AssumptionViolatedException("Can only be run on Windows");
+		}
+		final File nul = new File("nul");
+		try (FileOutputStream fout = new FileOutputStream(nul)) {
+			fout.write("test".getBytes());
+		}
+		Assert.assertFalse(nul.exists());
 	}
 }

@@ -39,7 +39,7 @@ public class NullFile implements Closeable {
 	}
 
 	protected NullFile(final File nativeNull) throws IOException {
-		if (nativeNull != null && nativeNull.exists() && nativeNull.canWrite()) {
+		if (nativeNull != null) {
 			LOG.debug("Using native null device: {}", nativeNull);
 			this.file = nativeNull;
 			this.temporaryFile = false;
@@ -54,9 +54,12 @@ public class NullFile implements Closeable {
 	private static File getNativeNull() {
 		File nativeNull = null;
 		if (CommandLineUtil.isWindows()) {
-			nativeNull = new File("NUL");
+			nativeNull = new File("nul");
 		} else {
 			nativeNull = new File("/dev/null");
+			if (!nativeNull.exists() || !nativeNull.canWrite()) {
+				return null;
+			}
 		}
 		return nativeNull;
 	}

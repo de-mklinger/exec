@@ -33,7 +33,7 @@ import org.junit.Test;
  */
 public class CmdBuilderTest {
 	@Test
-	public void example() throws CommandLineException {
+	public void exampleNonWindows() throws CommandLineException {
 		if (CommandLineUtil.isWindows()) {
 			throw new AssumptionViolatedException("ls command not available");
 		}
@@ -42,6 +42,24 @@ public class CmdBuilderTest {
 		new CmdBuilder("ls")
 		.arg("-l")
 		.directory(new File("/etc"))
+		.stdout(stdout)
+		.toCmd()
+		.execute();
+		final String output = stdout.toString();
+		System.out.println(output);
+	}
+
+	@Test
+	public void exampleWindows() throws CommandLineException {
+		if (!CommandLineUtil.isWindows()) {
+			throw new AssumptionViolatedException("dir command not available");
+		}
+
+		final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+		new CmdBuilder("cmd")
+		.arg("/C")
+		.arg("dir")
+		.directory(new File("c:\\"))
 		.stdout(stdout)
 		.toCmd()
 		.execute();
