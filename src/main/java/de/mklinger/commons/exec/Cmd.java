@@ -52,8 +52,8 @@ public class Cmd {
 					for (final Iterator<Cmd> iterator = destroyOnShutdownCmds.iterator(); iterator.hasNext();) {
 						final Cmd cmd = iterator.next();
 						cmd.destroy();
-						iterator.remove();
 					}
+					destroyOnShutdownCmds.clear();
 				}
 			}
 		});
