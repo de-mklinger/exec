@@ -26,6 +26,9 @@ import java.util.List;
 public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends CmdBuilderBase<B> {
 	private String javaExecutable;
 	private List<String> javaOpts;
+	private StringBuilder modulePath;
+	private StringBuilder upgradeModulePath;
+	private StringBuilder modules;
 
 	public B javaExecutable(final String javaExecutable) {
 		this.javaExecutable = javaExecutable;
@@ -186,6 +189,75 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 		return getBuilder();
 	}
 
+	/**
+	 * Add Java 9 module path entries.
+	 * 
+	 * <pre>
+	 * --module-path <module path>...
+	 *     A : separated list of directories, each directory
+	 *     is a directory of modules.
+	 * </pre>
+	 */
+	public B modulePath(final String... modulePathEntries) {
+		this.modulePath = appendPathEntries(modulePath, modulePathEntries);
+		return getBuilder();
+	}
+	
+	/**
+	 * Add Java 9 upgrade module path entries.
+	 * 
+	 * <pre>
+	 * --upgrade-module-path <module path>...
+	 *     A : separated list of directories, each directory
+	 *     is a directory of modules that replace upgradeable
+	 *     modules in the runtime image
+	 * </pre>
+	 */
+	public B upgradeModulePath(final String... upgradeModulePathEntries) {
+		this.upgradeModulePath = appendPathEntries(upgradeModulePath, upgradeModulePathEntries);
+		return getBuilder();
+	}
+
+	private static StringBuilder appendPathEntries(StringBuilder path, String... pathEntries) {
+		if (pathEntries == null || pathEntries.length == 0) {
+			return path;
+		}
+		if (path == null) {
+			int size = pathEntries.length - 1;
+			for (final String modulePathEntry : pathEntries) {
+				size += modulePathEntry.length();
+			}
+			path = new StringBuilder(Math.max(16, size));
+		}
+		for (final String modulePathEntry : pathEntries) {
+			if (path.length() > 0) {
+				path.append(File.pathSeparatorChar);
+			}
+			path.append(modulePathEntry);
+		}
+		return path;
+	}
+
+	/**
+	 * Add Java 9 modules.
+	 * 
+	 * <pre>
+	 * --add-modules <module name>[,<module name>...]
+	 *               root modules to resolve in addition to the initial module.
+	 *               <module name> can also be ALL-DEFAULT, ALL-SYSTEM,
+	 *               ALL-MODULE-PATH.
+	 * </pre>
+	 */
+	public B addModule(String moduleName) {
+		if (modules == null) {
+			modules = new StringBuilder(Math.max(16, moduleName.length()));
+		} else {
+			modules.append(',');
+		}
+		modules.append(moduleName);
+		return getBuilder();
+	}
+
 	@Override
 	public CmdSettings toCmdSettings() {
 		final CmdSettings cmdSettings = super.toCmdSettings();
@@ -205,6 +277,18 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 		if (javaOpts != null) {
 			Collections.sort(javaOpts);
 			additionalCommandParts.addAll(javaOpts);
+		}
+		if (modulePath != null) {
+			additionalCommandParts.add("--module-path");
+			additionalCommandParts.add(modulePath.toString());
+		}
+		if (upgradeModulePath != null) {
+			additionalCommandParts.add("--upgrade-module-path");
+			additionalCommandParts.add(upgradeModulePath.toString());
+		}
+		if (modules != null) {
+			additionalCommandParts.add("--add-modules");
+			additionalCommandParts.add(modules.toString());
 		}
 		return additionalCommandParts;
 	}
