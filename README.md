@@ -23,7 +23,7 @@ Maven dependency:
 <dependency>
     <groupId>de.mklinger.commons</groupId>
     <artifactId>exec</artifactId>
-    <version>0.26</version>
+    <version>0.32</version>
 </dependency>
 ```
 
