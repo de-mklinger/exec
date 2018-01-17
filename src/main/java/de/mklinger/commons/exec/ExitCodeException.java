@@ -18,7 +18,7 @@ package de.mklinger.commons.exec;
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
-public class ExitCodeException extends CommandLineException {
+public class ExitCodeException extends CmdException {
 
 	private static final long serialVersionUID = 1L;
 

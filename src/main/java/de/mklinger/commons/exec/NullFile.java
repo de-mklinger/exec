@@ -53,7 +53,7 @@ public class NullFile implements Closeable {
 
 	private static File getNativeNull() {
 		File nativeNull = null;
-		if (CommandLineUtil.isWindows()) {
+		if (CmdUtil.isWindows()) {
 			nativeNull = new File("nul");
 		} else {
 			nativeNull = new File("/dev/null");

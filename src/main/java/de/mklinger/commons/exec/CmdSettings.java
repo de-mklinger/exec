@@ -20,6 +20,8 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +32,7 @@ import org.slf4j.LoggerFactory;
 public class CmdSettings {
 	private static final Logger LOG = LoggerFactory.getLogger(CmdSettings.class);
 
-	private ExecutorProvider executorProvider;
+	private Supplier<Executor> executorSupplier;
 	private List<String> command;
 	private File directory;
 	private int expectedExitValue = 0;
@@ -80,7 +82,7 @@ public class CmdSettings {
 		this.destroyOnError = cmdSettings.destroyOnError;
 		this.destroyOnShutdown = cmdSettings.destroyOnShutdown;
 		this.destroyForcibly = cmdSettings.destroyForcibly;
-		this.executorProvider = cmdSettings.executorProvider;
+		this.executorSupplier = cmdSettings.executorSupplier;
 	}
 
 	public List<String> getCommand() {
@@ -230,13 +232,13 @@ public class CmdSettings {
 		this.destroyForcibly = destroyForcibly;
 	}
 
-	public void setExecutorProvider(final ExecutorProvider executorProvider) {
+	public void setExecutorSupplier(final Supplier<Executor> executorSupplier) {
 		checkFrozen();
-		this.executorProvider = executorProvider;
+		this.executorSupplier = executorSupplier;
 	}
 
-	public ExecutorProvider getExecutorProvider() {
-		return executorProvider;
+	public Supplier<Executor> getExecutorSupplier() {
+		return executorSupplier;
 	}
 
 	public void freeze() {

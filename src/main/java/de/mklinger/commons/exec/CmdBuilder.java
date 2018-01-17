@@ -16,6 +16,7 @@
 package de.mklinger.commons.exec;
 
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  * The main entry point for using the Exec library. Fluent API for creating
@@ -57,5 +58,21 @@ public class CmdBuilder extends CmdBuilderBase<CmdBuilder> {
 			throw new NullPointerException();
 		}
 		arg(command.getAbsolutePath());
+	}
+
+	/**
+	 * Prepare command execution.
+	 *
+	 * @param command
+	 *            The command to execute on the underlying OS. The given File
+	 *            must be executable on the underlying OS. It must be absolute
+	 *            or must be relative to the current working directory of the
+	 *            VM.
+	 */
+	public CmdBuilder(final Path command) {
+		if (command == null) {
+			throw new NullPointerException();
+		}
+		arg(command.toAbsolutePath().toString());
 	}
 }

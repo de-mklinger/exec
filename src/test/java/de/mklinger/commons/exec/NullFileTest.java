@@ -29,7 +29,7 @@ import org.junit.Test;
 public class NullFileTest {
 	@Test
 	public void testNative() throws IOException {
-		if (CommandLineUtil.isWindows()) {
+		if (CmdUtil.isWindows()) {
 			throw new AssumptionViolatedException("nul special file does not really exist in Windows");
 		}
 		try (final NullFile nf = new NullFile()) {
@@ -67,7 +67,7 @@ public class NullFileTest {
 
 	@Test
 	public void testWindows() throws IOException {
-		if (!CommandLineUtil.isWindows()) {
+		if (!CmdUtil.isWindows()) {
 			throw new AssumptionViolatedException("Can only be run on Windows");
 		}
 		final File nul = new File("nul");

@@ -33,8 +33,8 @@ import org.junit.Test;
  */
 public class CmdBuilderTest {
 	@Test
-	public void exampleNonWindows() throws CommandLineException {
-		if (CommandLineUtil.isWindows()) {
+	public void exampleNonWindows() throws CmdException {
+		if (CmdUtil.isWindows()) {
 			throw new AssumptionViolatedException("ls command not available");
 		}
 
@@ -50,8 +50,8 @@ public class CmdBuilderTest {
 	}
 
 	@Test
-	public void exampleWindows() throws CommandLineException {
-		if (!CommandLineUtil.isWindows()) {
+	public void exampleWindows() throws CmdException {
+		if (!CmdUtil.isWindows()) {
 			throw new AssumptionViolatedException("dir command not available");
 		}
 
@@ -248,7 +248,7 @@ public class CmdBuilderTest {
 	@Test
 	public void testArgToStringCollection() {
 		final CmdBuilder cb = new CmdBuilder("command");
-		cb.arg(Arrays.asList(new File("."), new Integer(2)));
+		cb.arg(Arrays.asList(new File("."), Integer.valueOf(2)));
 		final CmdSettings cmdSettings = cb.toCmdSettings();
 		final List<String> command = cmdSettings.getCommand();
 		Assert.assertNotNull(command);
@@ -261,7 +261,7 @@ public class CmdBuilderTest {
 	@Test
 	public void testArgsToStringCollection() {
 		final CmdBuilder cb = new CmdBuilder("command");
-		cb.args(Arrays.asList(new File("."), new Integer(2)));
+		cb.args(Arrays.asList(new File("."), Integer.valueOf(2)));
 		final CmdSettings cmdSettings = cb.toCmdSettings();
 		final List<String> command = cmdSettings.getCommand();
 		Assert.assertNotNull(command);

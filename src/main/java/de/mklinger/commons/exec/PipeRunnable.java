@@ -20,9 +20,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.mklinger.commons.exec.io.IOUtils;
 
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de
@@ -58,21 +59,21 @@ public class PipeRunnable extends ErrorHandlingRunnable {
 		return running.get();
 	}
 
-	public void waitForStart(final long timeoutMillis) throws CommandLineException {
+	public void waitForStart(final long timeoutMillis) throws CmdException {
 		final long start = System.currentTimeMillis();
 		while (!started.get()) {
 			if (start + timeoutMillis < System.currentTimeMillis()) {
-				throw new CommandLineException("Timout waiting for pipe to start after " + timeoutMillis + " ms");
+				throw new CmdException("Timout waiting for pipe to start after " + timeoutMillis + " ms");
 			}
 			Thread.yield();
 		}
 	}
 
-	public void waitForStop(final long timeoutMillis) throws CommandLineException, InterruptedException {
+	public void waitForStop(final long timeoutMillis) throws CmdException, InterruptedException {
 		final long start = System.currentTimeMillis();
 		while (isRunning()) {
 			if (start + timeoutMillis < System.currentTimeMillis()) {
-				throw new CommandLineException("Timout waiting for pipe to stop after " + timeoutMillis + " ms");
+				throw new CmdException("Timout waiting for pipe to stop after " + timeoutMillis + " ms");
 			}
 			Thread.sleep(1);
 		}

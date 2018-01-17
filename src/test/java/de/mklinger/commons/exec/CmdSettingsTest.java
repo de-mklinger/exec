@@ -18,7 +18,11 @@ package de.mklinger.commons.exec;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 import org.apache.commons.io.input.ClosedInputStream;
 import org.apache.commons.io.output.ClosedOutputStream;
@@ -56,10 +60,23 @@ public class CmdSettingsTest extends BeanTestBase<CmdSettings> {
 				}
 			};
 		}
-		if (type == ExecutorProvider.class) {
-			return new DefaultExecutorProvider();
+		if (isParameterizedType(type, Supplier.class, Executor.class)) {
+			return new DefaultExecutorSupplier();
 		}
 		return super.createValue(type);
+	}
+
+	private static boolean isParameterizedType(final Type actualType, final Type expectedRawType, final Type... expectedTypeArguments) {
+		if (!(actualType instanceof ParameterizedType)) {
+			return false;
+		}
+		final ParameterizedType actualParameterizedType = (ParameterizedType) actualType;
+		final Type actualRawType = actualParameterizedType.getRawType();
+		if (actualRawType != expectedRawType) {
+			return false;
+		}
+		final Type[] actualTypeArguments = actualParameterizedType.getActualTypeArguments();
+		return Arrays.equals(actualTypeArguments, expectedTypeArguments);
 	}
 
 	@Override

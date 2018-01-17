@@ -17,11 +17,14 @@ package de.mklinger.commons.exec;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * Base class for
@@ -47,6 +50,10 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 		return getBuilder();
 	}
 
+	public B stdout(final Path stdout) {
+		return stdout(stdout.toFile());
+	}
+
 	public B stderr(final OutputStream stderr) {
 		cmdSettings.setStderr(stderr);
 		return getBuilder();
@@ -55,6 +62,10 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 	public B stderr(final File stderr) {
 		cmdSettings.setStderrFile(stderr);
 		return getBuilder();
+	}
+
+	public B stderr(final Path stderr) {
+		return stderr(stderr.toFile());
 	}
 
 	public B redirectErrorStream(final boolean redirectErrorStream) {
@@ -75,6 +86,10 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 	public B directory(final File directory) {
 		cmdSettings.setDirectory(directory);
 		return getBuilder();
+	}
+
+	public B directory(final Path directory) {
+		return directory(directory.toFile());
 	}
 
 	public B environment(final String name, final String value) {
@@ -152,8 +167,8 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 		}
 	}
 
-	public B executorProvider(final ExecutorProvider executorProvider) {
-		cmdSettings.setExecutorProvider(executorProvider);
+	public B executorSupplier(final Supplier<Executor> executorSupplier) {
+		cmdSettings.setExecutorSupplier(executorSupplier);
 		return getBuilder();
 	}
 

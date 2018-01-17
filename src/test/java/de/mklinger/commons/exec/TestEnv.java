@@ -20,8 +20,8 @@ import org.junit.Test;
 
 public class TestEnv {
 	@Test
-	public void test() throws CommandLineException {
-		if (CommandLineUtil.isWindows()) {
+	public void test() throws CmdException {
+		if (CmdUtil.isWindows()) {
 			throw new AssumptionViolatedException("env is not available on Windows");
 		}
 		new CmdBuilder("env").arg("env").environment("test", "bla").stdout(System.out).toCmd().execute();

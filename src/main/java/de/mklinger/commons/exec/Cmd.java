@@ -19,9 +19,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ import org.slf4j.LoggerFactory;
 public class Cmd {
 	private static final Logger LOG = LoggerFactory.getLogger(Cmd.class);
 
-	private static final ExecutorProvider DEFAULT_EXECUTOR_PROVIDER = new DefaultExecutorProvider();
+	private static final Supplier<Executor> DEFAULT_EXECUTOR_SUPPLIER = new DefaultExecutorSupplier();
 
 	private static final long PIPE_RUNNABLE_START_TIMEOUT = 1000;
 	private static final long PIPE_RUNNABLE_STOP_TIMEOUT = 60000;
@@ -49,8 +50,7 @@ public class Cmd {
 			@Override
 			public void run() {
 				synchronized (destroyOnShutdownCmds) {
-					for (final Iterator<Cmd> iterator = destroyOnShutdownCmds.iterator(); iterator.hasNext();) {
-						final Cmd cmd = iterator.next();
+					for (final Cmd cmd : destroyOnShutdownCmds) {
 						cmd.destroy();
 					}
 					destroyOnShutdownCmds.clear();
@@ -75,18 +75,18 @@ public class Cmd {
 	/**
 	 * Start the process and wait for it to exit.
 	 *
-	 * @throws CommandLineException in case of an error
-	 * @throws CommandLineInterruptedException if the waiting thread was
+	 * @throws CmdException in case of an error
+	 * @throws CmdInterruptedException if the waiting thread was
 	 *             interrupted. The interruption state of the current thread is
 	 *             set to interrupted.
 	 */
-	public void execute() throws CommandLineException {
+	public void execute() throws CmdException {
 		try {
 			start();
 			waitFor();
 		} catch (final InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new CommandLineInterruptedException(e);
+			throw new CmdInterruptedException(e);
 		} finally {
 			close();
 		}
@@ -97,9 +97,9 @@ public class Cmd {
 	 * method must be {@link #close() closed} or {@link #destroy() destroyed}
 	 * at some point in future.
 	 *
-	 * @throws CommandLineException in case of an error
+	 * @throws CmdException in case of an error
 	 */
-	public void start() throws CommandLineException {
+	public void start() throws CmdException {
 		final List<String> command = cmdSettings.getCommand();
 		if (command == null || cmdSettings.getCommand().isEmpty()) {
 			throw new IllegalArgumentException("Missing command");
@@ -123,7 +123,7 @@ public class Cmd {
 				try {
 					stdOutNullFile = new NullFile();
 				} catch (final IOException e) {
-					throw new CommandLineException("Error creating null file", e);
+					throw new CmdException("Error creating null file", e);
 				}
 				pb.redirectOutput(Redirect.to(stdOutNullFile.getFile()));
 			}
@@ -136,7 +136,7 @@ public class Cmd {
 				try {
 					stdErrNullFile = new NullFile();
 				} catch (final IOException e) {
-					throw new CommandLineException("Error creating null file", e);
+					throw new CmdException("Error creating null file", e);
 				}
 				pb.redirectError(Redirect.to(stdErrNullFile.getFile()));
 			}
@@ -149,7 +149,7 @@ public class Cmd {
 		try {
 			process = pb.start();
 		} catch (final IOException e) {
-			throw new CommandLineException(e);
+			throw new CmdException(e);
 		}
 		startTime = System.currentTimeMillis();
 		if (cmdSettings.isDestroyOnShutdown()) {
@@ -180,17 +180,17 @@ public class Cmd {
 				pout.write(cmdSettings.getStdinBytes());
 				pout.close();
 			} catch (final IOException e) {
-				throw new CommandLineException("Error writing to stdin", e);
+				throw new CmdException("Error writing to stdin", e);
 			}
 		}
 	}
 
 	private void execute(final Runnable runnable) {
-		ExecutorProvider executorProvider = cmdSettings.getExecutorProvider();
-		if (executorProvider == null) {
-			executorProvider = DEFAULT_EXECUTOR_PROVIDER;
+		Supplier<Executor> executorSupplier = cmdSettings.getExecutorSupplier();
+		if (executorSupplier == null) {
+			executorSupplier = DEFAULT_EXECUTOR_SUPPLIER;
 		}
-		executorProvider.getExecutor().execute(runnable);
+		executorSupplier.get().execute(runnable);
 	}
 
 	//  public Integer getPid() {
@@ -212,11 +212,11 @@ public class Cmd {
 	 *
 	 * @return The process exit value.
 	 *
-	 * @throws CommandLineException in case of an error
+	 * @throws CmdException in case of an error
 	 * @throws InterruptedException if the current thread is interrupted while
 	 *             waiting for the process to finish.
 	 */
-	public int waitFor() throws CommandLineException, InterruptedException {
+	public int waitFor() throws CmdException, InterruptedException {
 		final int exitValue;
 		try {
 			try {
@@ -243,10 +243,10 @@ public class Cmd {
 					pingRunnable.interrupt();
 				}
 			}
-		} catch (CommandLineException | InterruptedException | RuntimeException e) {
+		} catch (CmdException | InterruptedException | RuntimeException e) {
 			throw e;
 		} catch (final Exception e) {
-			throw new CommandLineException(e);
+			throw new CmdException(e);
 		} finally {
 			pingRunnable = null;
 			stdoutPipe = null;
@@ -265,7 +265,7 @@ public class Cmd {
 			if (pipe != null) {
 				pipe.waitForStop(timeout);
 				if (pipe.getError() != null) {
-					final CommandLineException ex = new CommandLineException("Error reading " + name, pipe.getError());
+					final CmdException ex = new CmdException("Error reading " + name, pipe.getError());
 					if (throwedException != null) {
 						throwedException.addSuppressed(ex);
 					} else {
@@ -307,7 +307,7 @@ public class Cmd {
 		}
 	}
 
-	private int doWaitFor() throws InterruptedException, CommandLineException {
+	private int doWaitFor() throws InterruptedException, CmdException {
 		if (cmdSettings.getTimeout() < 1 && !cmdSettings.isDestroyOnError()) {
 			return process.waitFor();
 		} else {
@@ -322,19 +322,19 @@ public class Cmd {
 				}
 			}
 			destroyProcess();
-			throw new CommandLineException("Timeout: command execution took longer than " + cmdSettings.getTimeout() + "ms");
+			throw new CmdException("Timeout: command execution took longer than " + cmdSettings.getTimeout() + "ms");
 		}
 	}
 
-	private void checkErrorHandlingRunnables() throws CommandLineException {
+	private void checkErrorHandlingRunnables() throws CmdException {
 		if (stderrPipe != null && stderrPipe.getError() != null) {
-			throw new CommandLineException("Error in stderr pipe", stderrPipe.getError());
+			throw new CmdException("Error in stderr pipe", stderrPipe.getError());
 		}
 		if (stdoutPipe != null && stdoutPipe.getError() != null) {
-			throw new CommandLineException("Error in stdout pipe", stdoutPipe.getError());
+			throw new CmdException("Error in stdout pipe", stdoutPipe.getError());
 		}
 		if (pingRunnable != null && pingRunnable.getError() != null) {
-			throw new CommandLineException("Error in ping runnable", pingRunnable.getError());
+			throw new CmdException("Error in ping runnable", pingRunnable.getError());
 		}
 	}
 

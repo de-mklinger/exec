@@ -52,7 +52,7 @@ public class JavaHome {
 	}
 
 	public static JavaHome getByPath() {
-		final String s = CommandLineUtil.findExecutable("java", "java.exe");
+		final String s = CmdUtil.findExecutable("java", "java.exe");
 		if (s == null || s.isEmpty()) {
 			return null;
 		}
@@ -79,7 +79,7 @@ public class JavaHome {
 
 	public File getJavaExecutable() {
 		File f = new File(javaHome, "bin");
-		if (CommandLineUtil.isWindows()) {
+		if (CmdUtil.isWindows()) {
 			f = new File(f, "java.exe");
 		} else {
 			f = new File(f, "java");

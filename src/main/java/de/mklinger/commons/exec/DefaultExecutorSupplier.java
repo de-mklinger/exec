@@ -17,15 +17,16 @@ package de.mklinger.commons.exec;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
-public class DefaultExecutorProvider implements ExecutorProvider {
+public class DefaultExecutorSupplier implements Supplier<Executor> {
 	private volatile Executor executor = null;
 
 	@Override
-	public Executor getExecutor() {
+	public Executor get() {
 		if (executor == null) {
 			synchronized (this) {
 				if (executor == null) {

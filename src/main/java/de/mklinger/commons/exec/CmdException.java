@@ -16,19 +16,29 @@
 package de.mklinger.commons.exec;
 
 /**
- * Runtime exception wrapper for {@link InterruptedException}.
- * <p>
- * Whenever this exception is thrown, the interrupted state of the throwing
- * thread has been set to "interrupted" by calling {@code interrupt()} on the
- * interrupted thread.
- * </p>
+ * Thrown when something went wrong with command execution.
  *
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
+ * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
-public class CommandLineInterruptedException extends RuntimeException {
+public class CmdException extends Exception {
 	private static final long serialVersionUID = 1L;
 
-	public CommandLineInterruptedException(final InterruptedException cause) {
+	public CmdException() {
+	}
+
+	public CmdException(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
+
+	public CmdException(final String message, final Throwable cause) {
+		super(message, cause);
+	}
+
+	public CmdException(final String message) {
+		super(message);
+	}
+
+	public CmdException(final Throwable cause) {
 		super(cause);
 	}
 }

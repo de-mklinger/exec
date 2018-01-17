@@ -25,11 +25,11 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
-public class CommandLineUtil {
+public class CmdUtil {
 	private static final String OS_NAME = System.getProperty("os.name");
 	private static final String OS_ARCH = System.getProperty("os.arch");
 
-	private static final Logger LOG = LoggerFactory.getLogger(CommandLineUtil.class);
+	private static final Logger LOG = LoggerFactory.getLogger(CmdUtil.class);
 
 	public static String findExecutable(final String... executables) {
 		for (final String executable : executables) {
@@ -88,7 +88,7 @@ public class CommandLineUtil {
 			final ByteArrayOutputStream out = new ByteArrayOutputStream();
 			new CmdBuilder(command).args(args).toCmd().execute();
 			return extractExecutablePath(out.toString());
-		} catch (final CommandLineException e) {
+		} catch (final CmdException e) {
 			// ignore
 			LOG.debug("Error trying to find executable with command", e);
 		}

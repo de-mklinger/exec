@@ -139,17 +139,17 @@ public class JavaClassCmdBuilderTest {
 	}
 
 	@Test(expected = ExitCodeException.class)
-	public void testNotFound() throws CommandLineException {
+	public void testNotFound() throws CmdException {
 		new JavaClassCmdBuilder("doesnotexist")
 		.toCmd()
 		.execute();
 	}
 
 	@Test
-	public void testExecute() throws CommandLineException, URISyntaxException {
+	public void testExecute() throws CmdException, URISyntaxException {
 		final File testClassesDir = new File(ExecutableWithMain.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-		final ByteArrayOutputStream stderr = new ByteArrayOutputStream();;
-		final ByteArrayOutputStream stdout = new ByteArrayOutputStream();;
+		final ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+		final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
 		new JavaClassCmdBuilder(ExecutableWithMain.class.getName())
 		.classpath(testClassesDir.getAbsolutePath())
 		.stderr(stderr)

@@ -31,14 +31,10 @@ The following code example executes the command ```ls -l``` in the directory
 ```/etc``` storing the output in the string ```output```:
 
 ```java
-ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-new CmdBuilder("ls")
+String output = CmdOutputUtil.executeForStdout(
+    new CmdBuilder("ls")
     .arg("-l")
-    .directory(new File("/etc"))
-    .stdout(stdout)
-    .toCmd()
-    .execute();
-String output = stdout.toString();
+    .directory(new File("/etc")));
 ```
 
 
@@ -49,13 +45,19 @@ It is surprisingly hard to execute a command line program from Java compared
 to other programming languages, especially if the program produces output --
 whether you are interested in the output or not.
 
-[TBD: talk about jlp being especially bad with stdout/stderr]
+### Stdout, stderr and full buffers
 
-[TBD: talk about threads needed to consume stdout/stderr]
+When a program produces output on stdout or stderr, this output is usually
+buffered on the OS level up to a certain amount. When the buffer is full
+but the program still produces output, it is possible that the program blocks.
+To avoid this, it is required to read all output from the program.
 
-[TBD: talk about /dev/null]
+### Reading output requires threads
 
-[TBD: talk about waiting for a program to end with jlp]
+To read output from a program while waiting for it to exit, we need to use
+threads in Java. As we have two output streams (stdout and stderr), we need
+at least two threads. This library handles all required threading to read
+the program's output automatically. Threads are re-used by default.
 
 
 Exec Features
@@ -65,11 +67,10 @@ Exec Features
 
 The semantics for accessing stdout and stderr of the program executed are 
 reversed in comparison to java.lang.Process. Instead of pulling the output
-of a program using an InputStream, you let Exec push data data to an
-OutputStream of your choice or directly to a file. In case of a files, no
-additional threads are required. When using streams, Exec does all the work
-of using threads to read from the program's output and writing it to your
-stream.
+of a program using an InputStream, you let Exec push data to an OutputStream
+of your choice or directly to a file. In case of a files, no additional 
+threads are required. When using streams, Exec does all the work of using 
+threads to read from the program's output and writing it to your stream.
 
 ### Auto /dev/null
 

@@ -15,11 +15,20 @@
  */
 package de.mklinger.commons.exec;
 
-import java.util.concurrent.Executor;
-
 /**
+ * Runtime exception wrapper for {@link InterruptedException}.
+ * <p>
+ * Whenever this exception is thrown, the interrupted state of the throwing
+ * thread has been set to "interrupted" by calling {@code interrupt()} on the
+ * interrupted thread.
+ * </p>
+ *
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
-public interface ExecutorProvider {
-	Executor getExecutor();
+public class CmdInterruptedException extends RuntimeException {
+	private static final long serialVersionUID = 1L;
+
+	public CmdInterruptedException(final InterruptedException cause) {
+		super(cause);
+	}
 }
