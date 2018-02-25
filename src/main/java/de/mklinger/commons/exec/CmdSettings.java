@@ -17,6 +17,8 @@ package de.mklinger.commons.exec;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +64,9 @@ public class CmdSettings {
 	 * @param cmdSettings The settings to be copied
 	 */
 	public CmdSettings(final CmdSettings cmdSettings) {
-		this.command = cmdSettings.command;
+		if (cmdSettings.command != null) {
+			this.command = new ArrayList<>(cmdSettings.command);
+		}
 		this.directory = cmdSettings.directory;
 		this.expectedExitValue = cmdSettings.expectedExitValue;
 		this.stdout = cmdSettings.stdout;
@@ -86,7 +90,11 @@ public class CmdSettings {
 	}
 
 	public List<String> getCommand() {
-		return command;
+		if (frozen && command != null) {
+			return Collections.unmodifiableList(command);
+		} else {
+			return command;
+		}
 	}
 
 	public void setCommand(final List<String> command) {
@@ -188,7 +196,11 @@ public class CmdSettings {
 	}
 
 	public Map<String, String> getEnvironment() {
-		return environment;
+		if (frozen && environment != null) {
+			return Collections.unmodifiableMap(environment);
+		} else {
+			return environment;
+		}
 	}
 
 	public void setEnvironment(final Map<String, String> environment) {
