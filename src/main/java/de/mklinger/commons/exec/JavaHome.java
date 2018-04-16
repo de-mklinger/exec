@@ -16,6 +16,7 @@
 package de.mklinger.commons.exec;
 
 import java.io.File;
+import java.util.Optional;
 
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de
@@ -27,31 +28,31 @@ public class JavaHome {
 		this.javaHome = javaHome;
 	}
 
-	public static JavaHome getByRuntime() {
+	public static Optional<JavaHome> getByRuntime() {
 		final String javaHomeProp = System.getProperty("java.home");
 		if (javaHomeProp == null || javaHomeProp.isEmpty()) {
-			return null;
+			return Optional.empty();
 		}
 		final File f = new File(javaHomeProp);
 		if (!isValidJavaHome(f)) {
-			return null;
+			return Optional.empty();
 		}
-		return new JavaHome(f);
+		return Optional.of(new JavaHome(f));
 	}
 
-	public static JavaHome getJavaHomeByEnvironmentVariable() {
+	public static Optional<JavaHome> getJavaHomeByEnvironmentVariable() {
 		final String javaHomeEnv = System.getenv("JAVA_HOME");
 		if (javaHomeEnv == null || javaHomeEnv.isEmpty()) {
-			return null;
+			return Optional.empty();
 		}
 		final File f = new File(javaHomeEnv);
 		if (!isValidJavaHome(f)) {
-			return null;
+			return Optional.empty();
 		}
-		return new JavaHome(f);
+		return Optional.of(new JavaHome(f));
 	}
 
-	public static JavaHome getByPath() {
+	public static Optional<JavaHome> getByPath() {
 		final String s = CmdUtil.findExecutable("java", "java.exe");
 		if (s == null || s.isEmpty()) {
 			return null;
@@ -59,13 +60,13 @@ public class JavaHome {
 		final File java = new File(s);
 		final File bin = java.getParentFile();
 		if (!bin.getName().equals("bin")) {
-			return null;
+			return Optional.empty();
 		}
 		final File javaHome = bin.getParentFile();
 		if (!isValidJavaHome(javaHome)) {
-			return null;
+			return Optional.empty();
 		}
-		return new JavaHome(javaHome);
+		return Optional.of(new JavaHome(javaHome));
 	}
 
 	private static boolean isValidJavaHome(final File f) {
@@ -77,7 +78,7 @@ public class JavaHome {
 		return javaHome;
 	}
 
-	public File getJavaExecutable() {
+	public Optional<File> getJavaExecutable() {
 		File f = new File(javaHome, "bin");
 		if (CmdUtil.isWindows()) {
 			f = new File(f, "java.exe");
@@ -85,8 +86,8 @@ public class JavaHome {
 			f = new File(f, "java");
 		}
 		if (f.exists() && f.canExecute()) {
-			return f;
+			return Optional.of(f);
 		}
-		return null;
+		return Optional.empty();
 	}
 }

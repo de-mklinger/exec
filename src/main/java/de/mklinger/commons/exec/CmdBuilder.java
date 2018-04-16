@@ -18,11 +18,13 @@ package de.mklinger.commons.exec;
 import java.io.File;
 import java.nio.file.Path;
 
+import de.mklinger.commons.exec.internal.CmdBuilderBase;
+
 /**
  * The main entry point for using the Exec library. Fluent API for creating
  * {@link Cmd} instances.
  *
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
+ * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public class CmdBuilder extends CmdBuilderBase<CmdBuilder> {
 	/**

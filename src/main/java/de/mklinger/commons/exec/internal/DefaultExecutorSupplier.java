@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.mklinger.commons.exec;
+package de.mklinger.commons.exec.internal;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 /**
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
+ * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public class DefaultExecutorSupplier implements Supplier<Executor> {
 	private volatile Executor executor = null;

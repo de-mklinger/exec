@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.mklinger.commons.exec;
+package de.mklinger.commons.exec.internal;
 
 import java.io.Closeable;
 import java.io.File;
@@ -21,6 +21,8 @@ import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.mklinger.commons.exec.CmdUtil;
 
 /**
  * Access to a null file. On Unixoid systems, the native null device

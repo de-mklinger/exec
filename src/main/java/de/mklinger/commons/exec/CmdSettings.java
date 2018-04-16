@@ -28,8 +28,10 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.mklinger.commons.exec.internal.Pingable;
+
 /**
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
+ * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public class CmdSettings {
 	private static final Logger LOG = LoggerFactory.getLogger(CmdSettings.class);

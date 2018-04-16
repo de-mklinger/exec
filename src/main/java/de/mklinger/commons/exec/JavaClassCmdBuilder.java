@@ -18,8 +18,10 @@ package de.mklinger.commons.exec;
 import java.io.File;
 import java.util.List;
 
+import de.mklinger.commons.exec.internal.JavaCmdBuilderBase;
+
 /**
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
+ * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public class JavaClassCmdBuilder extends JavaCmdBuilderBase<JavaClassCmdBuilder> {
 	private final String className;

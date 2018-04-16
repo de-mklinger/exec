@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.mklinger.commons.exec;
+package de.mklinger.commons.exec.internal;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -26,6 +26,12 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import de.mklinger.commons.exec.Cmd;
+import de.mklinger.commons.exec.CmdBuilder;
+import de.mklinger.commons.exec.CmdSettings;
+import de.mklinger.commons.exec.JavaClassCmdBuilder;
+import de.mklinger.commons.exec.JavaJarCmdBuilder;
+
 /**
  * Base class for
  * <ul>
@@ -35,7 +41,7 @@ import java.util.function.Supplier;
  * </ul>
  * and possibly others.
  *
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
+ * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 	private final CmdSettings cmdSettings = new CmdSettings();

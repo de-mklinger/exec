@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.mklinger.commons.exec;
+package de.mklinger.commons.exec.internal;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.mklinger.commons.exec.CmdSettings;
+import de.mklinger.commons.exec.JavaHome;
+
 /**
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
+ * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends CmdBuilderBase<B> {
 	private String javaExecutable;
@@ -36,17 +39,16 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 	}
 
 	public B javaExecutableFromRuntime() {
-		final JavaHome javaHome = JavaHome.getByRuntime();
-		if (javaHome == null) {
-			throw new IllegalStateException("No valid current JavaRuntime could be determined!");
-		}
-		final File javaExecFile = javaHome.getJavaExecutable();
-		if (javaExecFile == null) {
-			throw new IllegalStateException(
-					"Current Java-runtime is valid, but no executable 'java' file could be found in javaHome: " +
-							javaHome.getJavaHome().getAbsolutePath());
-		}
-		javaExecutable = javaExecFile.getAbsolutePath();
+		final JavaHome javaHome = JavaHome.getByRuntime()
+				.orElseThrow(() -> new IllegalStateException(
+						"No valid current JavaRuntime could be determined!"));
+
+		javaExecutable = javaHome.getJavaExecutable()
+				.orElseThrow(() -> new IllegalStateException(
+						"Current Java-runtime is valid, but no executable 'java' file could be found in javaHome: " +
+								javaHome.getJavaHome().getAbsolutePath()))
+				.getAbsolutePath();
+
 		return getBuilder();
 	}
 
@@ -191,7 +193,7 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 
 	/**
 	 * Add Java 9 module path entries.
-	 * 
+	 *
 	 * <pre>
 	 * --module-path <module path>...
 	 *     A : separated list of directories, each directory
@@ -202,10 +204,10 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 		this.modulePath = appendPathEntries(modulePath, modulePathEntries);
 		return getBuilder();
 	}
-	
+
 	/**
 	 * Add Java 9 upgrade module path entries.
-	 * 
+	 *
 	 * <pre>
 	 * --upgrade-module-path <module path>...
 	 *     A : separated list of directories, each directory
@@ -218,7 +220,7 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 		return getBuilder();
 	}
 
-	private static StringBuilder appendPathEntries(StringBuilder path, String... pathEntries) {
+	private static StringBuilder appendPathEntries(StringBuilder path, final String... pathEntries) {
 		if (pathEntries == null || pathEntries.length == 0) {
 			return path;
 		}
@@ -240,7 +242,7 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 
 	/**
 	 * Add Java 9 modules.
-	 * 
+	 *
 	 * <pre>
 	 * --add-modules <module name>[,<module name>...]
 	 *               root modules to resolve in addition to the initial module.
@@ -248,7 +250,7 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 	 *               ALL-MODULE-PATH.
 	 * </pre>
 	 */
-	public B addModule(String moduleName) {
+	public B addModule(final String moduleName) {
 		if (modules == null) {
 			modules = new StringBuilder(Math.max(16, moduleName.length()));
 		} else {
@@ -306,20 +308,19 @@ public abstract class JavaCmdBuilderBase<B extends CmdBuilderBase<B>> extends Cm
 		if (defaultJavaExecutable == null) {
 			synchronized (JavaCmdBuilderBase.class) {
 				if (defaultJavaExecutable == null) {
-					JavaHome javaHome = JavaHome.getJavaHomeByEnvironmentVariable();
-					if (javaHome == null) {
-						javaHome = JavaHome.getByRuntime();
-					}
-					if (javaHome != null) {
-						final File java = javaHome.getJavaExecutable();
-						if (java != null) {
-							defaultJavaExecutable = java.getAbsolutePath();
-						}
-					}
-					defaultJavaExecutable = "java";
+					defaultJavaExecutable = findJavaExecutable();
 				}
 			}
 		}
 		return defaultJavaExecutable;
+	}
+
+	// Visible for testing
+	static String findJavaExecutable() {
+		return JavaHome.getJavaHomeByEnvironmentVariable()
+				.or(JavaHome::getByRuntime)
+				.flatMap(JavaHome::getJavaExecutable)
+				.map(File::getAbsolutePath)
+				.orElse("java");
 	}
 }

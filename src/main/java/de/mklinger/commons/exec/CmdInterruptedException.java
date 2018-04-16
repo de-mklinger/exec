@@ -23,7 +23,7 @@ package de.mklinger.commons.exec;
  * interrupted thread.
  * </p>
  *
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
+ * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public class CmdInterruptedException extends RuntimeException {
 	private static final long serialVersionUID = 1L;

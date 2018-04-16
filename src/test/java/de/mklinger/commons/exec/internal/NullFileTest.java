@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.mklinger.commons.exec;
+package de.mklinger.commons.exec.internal;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,8 +23,10 @@ import org.junit.Assert;
 import org.junit.AssumptionViolatedException;
 import org.junit.Test;
 
+import de.mklinger.commons.exec.CmdUtil;
+
 /**
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
+ * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public class NullFileTest {
 	@Test

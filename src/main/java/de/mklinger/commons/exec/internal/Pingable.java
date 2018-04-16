@@ -13,26 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.mklinger.commons.exec;
+package de.mklinger.commons.exec.internal;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-public abstract class ErrorHandlingRunnable implements Runnable, ErrorHandler {
-	private final AtomicReference<Throwable> error = new AtomicReference<>();
-
-	@Override
-	public Throwable getError() {
-		return error.get();
-	}
-
-	@Override
-	public void run() {
-		try {
-			doRun();
-		} catch (final Throwable e) {
-			error.set(e);
-		}
-	}
-
-	protected abstract void doRun() throws Exception;
+public interface Pingable {
+	void ping();
 }

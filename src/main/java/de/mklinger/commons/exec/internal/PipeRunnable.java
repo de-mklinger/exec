@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.mklinger.commons.exec;
+package de.mklinger.commons.exec.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.mklinger.commons.exec.CmdException;
 import de.mklinger.commons.exec.io.IOUtils;
 
 /**

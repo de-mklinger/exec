@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 
+import de.mklinger.commons.exec.internal.CmdBuilderBase;
 import de.mklinger.commons.exec.io.SynchronizedOutputStream;
 import de.mklinger.commons.exec.io.TeeOutputStream;
 import de.mklinger.commons.exec.io.UnsynchronizedStringWriter;

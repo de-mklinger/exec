@@ -27,10 +27,12 @@ import java.util.function.Supplier;
 import org.apache.commons.io.input.ClosedInputStream;
 import org.apache.commons.io.output.ClosedOutputStream;
 
+import de.mklinger.commons.exec.internal.DefaultExecutorSupplier;
+import de.mklinger.commons.exec.internal.Pingable;
 import de.mklinger.commons.junitsupport.BeanTestBase;
 
 /**
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
+ * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public class CmdSettingsTest extends BeanTestBase<CmdSettings> {
 	public CmdSettingsTest() {

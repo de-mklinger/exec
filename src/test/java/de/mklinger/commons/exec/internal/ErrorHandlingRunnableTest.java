@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.mklinger.commons.exec;
+package de.mklinger.commons.exec.internal;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
+ * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public class ErrorHandlingRunnableTest {
 	@Test
@@ -31,7 +31,7 @@ public class ErrorHandlingRunnableTest {
 			}
 		};
 		r.run();
-		Assert.assertNull(r.getError());
+		Assert.assertFalse(r.getError().isPresent());
 	}
 
 	@Test
@@ -44,6 +44,6 @@ public class ErrorHandlingRunnableTest {
 			}
 		};
 		r.run();
-		Assert.assertSame(e, r.getError());
+		Assert.assertSame(e, r.getError().get());
 	}
 }

@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.mklinger.commons.exec;
+package de.mklinger.commons.exec.internal;
 
-public interface ErrorHandler {
-	Throwable getError();
+import java.util.Optional;
+
+public interface ErrorHolder {
+	Optional<Throwable> getError();
 }

@@ -27,6 +27,11 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.mklinger.commons.exec.internal.DefaultExecutorSupplier;
+import de.mklinger.commons.exec.internal.NullFile;
+import de.mklinger.commons.exec.internal.PingRunnable;
+import de.mklinger.commons.exec.internal.PipeRunnable;
+
 /**
  * A command. It may be not be started yet, it may be running right now or it may be terminated.
  * Other parties (i.e. Threads) may be waiting for it to terminate or doing progress.
@@ -34,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * Instances of this class should usually be created using {@link CmdBuilder}.
  * </p>
  *
- * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
+ * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
 public class Cmd {
 	private static final Logger LOG = LoggerFactory.getLogger(Cmd.class);
@@ -264,8 +269,8 @@ public class Cmd {
 		try {
 			if (pipe != null) {
 				pipe.waitForStop(timeout);
-				if (pipe.getError() != null) {
-					final CmdException ex = new CmdException("Error reading " + name, pipe.getError());
+				if (pipe.getError().isPresent()) {
+					final CmdException ex = new CmdException("Error reading " + name, pipe.getError().get());
 					if (throwedException != null) {
 						throwedException.addSuppressed(ex);
 					} else {
@@ -327,14 +332,14 @@ public class Cmd {
 	}
 
 	private void checkErrorHandlingRunnables() throws CmdException {
-		if (stderrPipe != null && stderrPipe.getError() != null) {
-			throw new CmdException("Error in stderr pipe", stderrPipe.getError());
+		if (stderrPipe != null && stderrPipe.getError().isPresent()) {
+			throw new CmdException("Error in stderr pipe", stderrPipe.getError().get());
 		}
-		if (stdoutPipe != null && stdoutPipe.getError() != null) {
-			throw new CmdException("Error in stdout pipe", stdoutPipe.getError());
+		if (stdoutPipe != null && stdoutPipe.getError().isPresent()) {
+			throw new CmdException("Error in stdout pipe", stdoutPipe.getError().get());
 		}
-		if (pingRunnable != null && pingRunnable.getError() != null) {
-			throw new CmdException("Error in ping runnable", pingRunnable.getError());
+		if (pingRunnable != null && pingRunnable.getError().isPresent()) {
+			throw new CmdException("Error in ping runnable", pingRunnable.getError().get());
 		}
 	}
 
