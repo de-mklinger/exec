@@ -49,11 +49,13 @@ public class Cmd {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
+				Set<Cmd> cmds;
 				synchronized (destroyOnShutdownCmds) {
-					for (final Cmd cmd : destroyOnShutdownCmds) {
-						cmd.destroy();
-					}
+					cmds = new HashSet<>(destroyOnShutdownCmds);
 					destroyOnShutdownCmds.clear();
+				}
+				for (final Cmd cmd : cmds) {
+					cmd.destroy();
 				}
 			}
 		});
