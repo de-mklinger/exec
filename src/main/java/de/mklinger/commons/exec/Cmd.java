@@ -16,6 +16,7 @@
 package de.mklinger.commons.exec;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.HashSet;
@@ -107,22 +108,49 @@ public class Cmd {
 	 * @throws CmdException in case of an error
 	 */
 	public void start() throws CmdException {
-		final List<String> command = cmdSettings.getCommand();
-		if (command == null || cmdSettings.getCommand().isEmpty()) {
-			throw new IllegalArgumentException("Missing command");
-		}
+		final List<String> command = requireCommand();
 		LOG.debug("Executing: {}", command);
 
 		final ProcessBuilder pb = new ProcessBuilder(command);
+
+		applyDirectory(pb);
+		applyEnvironment(pb);
+		applyStdOutFile(pb);
+		applyStdErrFile(pb);
+		applyRedirectErrorStream(pb);
+
+		startProcess(pb);
+		registerDestroyOnShutdown();
+
+		executePingable();
+		executeStdOutPipe();
+		executeStdErrPipe();
+
+		writeStdInBytes();
+	}
+
+	private List<String> requireCommand() {
+		final List<String> command = cmdSettings.getCommand();
+		if (command == null || command.isEmpty()) {
+			throw new IllegalArgumentException("Missing command");
+		}
+		return command;
+	}
+
+	private void applyDirectory(final ProcessBuilder pb) {
 		if (cmdSettings.getDirectory() != null) {
 			pb.directory(cmdSettings.getDirectory());
 		}
+	}
 
+	private void applyEnvironment(final ProcessBuilder pb) {
 		if (cmdSettings.getEnvironment() != null) {
 			pb.environment().clear();
 			pb.environment().putAll(cmdSettings.getEnvironment());
 		}
+	}
 
+	private void applyStdOutFile(final ProcessBuilder pb) throws CmdException {
 		if (cmdSettings.getStdout() == null) {
 			if (cmdSettings.getStdoutFile() != null) {
 				pb.redirectOutput(Redirect.to(cmdSettings.getStdoutFile()));
@@ -135,8 +163,10 @@ public class Cmd {
 				pb.redirectOutput(Redirect.to(stdOutNullFile.getFile()));
 			}
 		}
+	}
 
-		if (!cmdSettings.isRedirectErrorStream() && cmdSettings.getStderr() == null) {
+	private void applyStdErrFile(final ProcessBuilder pb) throws CmdException {
+		if (cmdSettings.getStderr() == null && !cmdSettings.isRedirectErrorStream()) {
 			if (cmdSettings.getStderrFile() != null) {
 				pb.redirectError(Redirect.to(cmdSettings.getStderrFile()));
 			} else {
@@ -148,39 +178,58 @@ public class Cmd {
 				pb.redirectError(Redirect.to(stdErrNullFile.getFile()));
 			}
 		}
+	}
 
+	private void applyRedirectErrorStream(final ProcessBuilder pb) {
 		if (cmdSettings.isRedirectErrorStream()) {
 			pb.redirectErrorStream(true);
 		}
+	}
 
+	private void startProcess(final ProcessBuilder pb) throws CmdException {
 		try {
 			process = pb.start();
 		} catch (final IOException e) {
 			throw new CmdException(e);
 		}
 		startTime = System.currentTimeMillis();
+	}
+
+	private void registerDestroyOnShutdown() {
 		if (cmdSettings.isDestroyOnShutdown()) {
 			synchronized (destroyOnShutdownCmds) {
 				destroyOnShutdownCmds.add(this);
 			}
 		}
+	}
 
+	private void executePingable() {
 		if (cmdSettings.getPingable() != null) {
 			pingRunnable = new PingRunnable(cmdSettings.getPingable());
 			execute(pingRunnable);
 		}
+	}
 
+	private void executeStdOutPipe() throws CmdException {
 		if (cmdSettings.getStdout() != null) {
-			stdoutPipe = new PipeRunnable(process.getInputStream(), cmdSettings.getStdout());
-			execute(stdoutPipe);
-			stdoutPipe.waitForStart(PIPE_RUNNABLE_START_TIMEOUT);
+			stdoutPipe = executePipe(process.getInputStream(), cmdSettings.getStdout());
 		}
-		if (!cmdSettings.isRedirectErrorStream() && cmdSettings.getStderr() != null) {
-			stderrPipe = new PipeRunnable(process.getErrorStream(), cmdSettings.getStderr());
-			execute(stderrPipe);
-			stderrPipe.waitForStart(PIPE_RUNNABLE_START_TIMEOUT);
-		}
+	}
 
+	private void executeStdErrPipe() throws CmdException {
+		if (cmdSettings.getStderr() != null && !cmdSettings.isRedirectErrorStream()) {
+			stderrPipe = executePipe(process.getErrorStream(), cmdSettings.getStderr());
+		}
+	}
+
+	private PipeRunnable executePipe(final InputStream in, final OutputStream out) throws CmdException {
+		final PipeRunnable pipe = new PipeRunnable(in, out);
+		execute(pipe);
+		pipe.waitForStart(PIPE_RUNNABLE_START_TIMEOUT);
+		return pipe;
+	}
+
+	private void writeStdInBytes() throws CmdException {
 		if (cmdSettings.getStdinBytes() != null) {
 			try {
 				final OutputStream pout = process.getOutputStream();
@@ -303,7 +352,7 @@ public class Cmd {
 		return e;
 	}
 
-	private Exception withSuppressed(final Exception mainException, final Exception newException) {
+	private static Exception withSuppressed(final Exception mainException, final Exception newException) {
 		if (mainException == null) {
 			return newException;
 		} else {
