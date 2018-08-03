@@ -21,7 +21,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -39,6 +42,8 @@ import java.util.function.Supplier;
  */
 public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 	private final CmdSettings cmdSettings = new CmdSettings();
+	private boolean inheritEnvironment = true;
+	private Set<String> withoutEnvironment = null;
 
 	public B stdout(final OutputStream stdout) {
 		cmdSettings.setStdout(stdout);
@@ -92,11 +97,24 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 		return directory(directory.toFile());
 	}
 
+	public B inheritEnvironment(final boolean inheritEnvironment) {
+		this.inheritEnvironment = inheritEnvironment;
+		return getBuilder();
+	}
+
 	public B environment(final String name, final String value) {
 		if (cmdSettings.getEnvironment() == null) {
-			cmdSettings.setEnvironment(new HashMap<>(System.getenv()));
+			cmdSettings.setEnvironment(new HashMap<>());
 		}
 		cmdSettings.getEnvironment().put(name, value);
+		return getBuilder();
+	}
+
+	public B withoutEnvironment(final String name) {
+		if (withoutEnvironment == null) {
+			withoutEnvironment = new HashSet<>();
+		}
+		withoutEnvironment.add(name);
 		return getBuilder();
 	}
 
@@ -173,7 +191,31 @@ public abstract class CmdBuilderBase<B extends CmdBuilderBase<B>> {
 	}
 
 	public CmdSettings toCmdSettings() {
-		return new CmdSettings(cmdSettings);
+		final CmdSettings cmdSettings = new CmdSettings(this.cmdSettings);
+
+		Map<String, String> env = null;
+		final Map<String, String> settingsEnv = cmdSettings.getEnvironment();
+		if (inheritEnvironment && settingsEnv != null) {
+			env = new HashMap<>(System.getenv());
+			env.putAll(settingsEnv);
+		}
+		if (withoutEnvironment != null) {
+			if (env == null) {
+				if (settingsEnv != null) {
+					env = new HashMap<>(settingsEnv);
+				} else {
+					env = new HashMap<>();
+				}
+			}
+			for (final String name : withoutEnvironment) {
+				env.remove(name);
+			}
+		}
+		if (env != null) {
+			cmdSettings.setEnvironment(env);
+		}
+
+		return cmdSettings;
 	}
 
 	public Cmd toCmd() {
