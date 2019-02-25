@@ -1,4 +1,4 @@
-exec: Execute external processes without hassle
+Execute external processes from Java
 ====
 
 [![Maven Central](https://img.shields.io/maven-central/v/de.mklinger.commons/exec.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22de.mklinger.commons%22%20AND%20a%3A%22exec%22)
@@ -23,7 +23,7 @@ Maven dependency:
 <dependency>
     <groupId>de.mklinger.commons</groupId>
     <artifactId>exec</artifactId>
-    <version>0.32</version>
+    <version>1.3</version>
 </dependency>
 ```
 
@@ -50,7 +50,7 @@ whether you are interested in the output or not.
 When a program produces output on stdout or stderr, this output is usually
 buffered on the OS level up to a certain amount. When the buffer is full
 but the program still produces output, it is possible that the program blocks.
-To avoid this, it is required to read all output from the program.
+To avoid this, it is required to read or discard all output from the program.
 
 ### Reading output requires threads
 
