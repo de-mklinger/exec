@@ -23,7 +23,7 @@ Maven dependency:
 <dependency>
     <groupId>de.mklinger.commons</groupId>
     <artifactId>exec</artifactId>
-    <version>1.3</version>
+    <version>1.4</version>
 </dependency>
 ```
 
@@ -90,6 +90,17 @@ Start another Java program using the VM installation your program is
 currently running in. Full support for system properties and memory settings
 included.
 
+```java
+new JavaJarCmdBuilder("tika-app.jar")
+    .directory(Paths.get("/opt/tika"))
+    .arg("--metadata")
+    .arg("--json")
+    .arg("myfile.docx")
+    .systemProperty("java.io.tmpdir", "/mytmp")
+    .xmx("2G")
+    .toCmd()
+    .execute();
+```
 
 License
 --
