@@ -15,6 +15,8 @@
  */
 package de.mklinger.commons.exec;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -22,6 +24,14 @@ import java.util.List;
  */
 public class JavaJarCmdBuilder extends JavaCmdBuilderBase<JavaJarCmdBuilder> {
 	private final String jar;
+
+	public JavaJarCmdBuilder(final File jar) {
+		this(jar.getAbsolutePath());
+	}
+
+	public JavaJarCmdBuilder(final Path jar) {
+		this(jar.toAbsolutePath().toString());
+	}
 
 	public JavaJarCmdBuilder(final String jar) {
 		this.jar = jar;
