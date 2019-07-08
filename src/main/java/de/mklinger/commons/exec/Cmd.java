@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,7 +107,8 @@ public class Cmd {
 		if (command == null || cmdSettings.getCommand().isEmpty()) {
 			throw new IllegalArgumentException("Missing command");
 		}
-		LOG.debug("Executing: {}", command);
+
+		logCommandLine(command);
 
 		final ProcessBuilder pb = new ProcessBuilder(command);
 		if (cmdSettings.getDirectory() != null) {
@@ -185,6 +187,18 @@ public class Cmd {
 				throw new CmdException("Error writing to stdin", e);
 			}
 		}
+	}
+
+	private void logCommandLine(final List<String> command) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Executing: {}", toBashCommandLine(command));
+		}
+	}
+
+	private String toBashCommandLine(final List<String> command) {
+		return command.stream()
+				.map(s -> s.replace("'", "'\"'\"'")) // using magic bash concatenation to escape single-quote
+				.collect(Collectors.joining("' '", "'", "'"));
 	}
 
 	private void execute(final Runnable runnable) {
@@ -289,7 +303,7 @@ public class Cmd {
 	private Exception handleExecutionException(final Exception mainException, final Exception newException) {
 		final Exception e = withSuppressed(mainException, newException);
 		if (cmdSettings.isDestroyOnError()) {
-			LOG.debug("Destroying on error", e);
+			LOG.trace("Destroying on error", e);
 			destroy();
 		}
 		if (newException instanceof InterruptedException) {
