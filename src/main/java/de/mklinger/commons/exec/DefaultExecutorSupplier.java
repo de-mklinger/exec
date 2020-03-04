@@ -23,17 +23,19 @@ import java.util.function.Supplier;
  * @author Marc Klinger - mklinger[at]mklinger[dot]de - klingerm
  */
 public class DefaultExecutorSupplier implements Supplier<Executor> {
-	private volatile Executor executor = null;
+	private volatile Executor executor;
 
 	@Override
 	public Executor get() {
-		if (executor == null) {
+		Executor tmp = executor;
+		if (tmp == null) {
 			synchronized (this) {
-				if (executor == null) {
-					executor = Executors.newCachedThreadPool(new DeamonThreadCmdThreadFactory());
+				tmp = executor;
+				if (tmp == null) {
+					executor = tmp = Executors.newCachedThreadPool(new DeamonThreadCmdThreadFactory());
 				}
 			}
 		}
-		return executor;
+		return tmp;
 	}
 }
