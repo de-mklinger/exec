@@ -48,16 +48,16 @@ whether you are interested in the output or not.
 ### Stdout, stderr and full buffers
 
 When a program produces output on stdout or stderr, this output is usually
-buffered on the OS level up to a certain amount. When the buffer is full
-but the program still produces output, it is possible that the program blocks.
-To avoid this, it is required to read all output from the program.
+buffered on the OS level up to some magic buffer size. When this buffer is 
+full, strange things may happen. A programm producing more output may block 
+and never return.
 
-### Reading output requires threads
+The only way to avoid this situation with Java Processes is to either activly
+read all output the program produces or to discard any output.
 
-To read output from a program while waiting for it to exit, we need to use
-threads in Java. As we have two output streams (stdout and stderr), we need
-at least two threads. This library handles all required threading to read
-the program's output automatically. Threads are re-used by default.
+This library handles stdout and stderr and keeps your processes running.
+It allows you to consume the output you are actually interested in and don't
+care about the rest.
 
 
 Exec Features
