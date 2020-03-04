@@ -15,13 +15,14 @@
  */
 package de.mklinger.commons.exec.io;
 
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
-public class SynchronizedOutputStream extends ProxyOutputStream {
+public class SynchronizedOutputStream extends FilterOutputStream {
 	public SynchronizedOutputStream(final OutputStream delegate) {
 		super(delegate);
 	}

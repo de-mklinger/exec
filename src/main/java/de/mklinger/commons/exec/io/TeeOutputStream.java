@@ -16,6 +16,7 @@
  */
 package de.mklinger.commons.exec.io;
 
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -24,7 +25,7 @@ import java.io.OutputStream;
  * command. It allows a stream to be branched off so there
  * are now two streams.
  */
-public class TeeOutputStream extends ProxyOutputStream {
+public class TeeOutputStream extends FilterOutputStream {
 
 	/** the second OutputStream to write to */
 	private final OutputStream branch;
