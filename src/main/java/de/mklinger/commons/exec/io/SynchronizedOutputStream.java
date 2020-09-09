@@ -22,7 +22,7 @@ import java.io.OutputStream;
 /**
  * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
-public class SynchronizedOutputStream extends FilterOutputStream {
+public class SynchronizedOutputStream extends ProxyOutputStream {
 	public SynchronizedOutputStream(final OutputStream delegate) {
 		super(delegate);
 	}
