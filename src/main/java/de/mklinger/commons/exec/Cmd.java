@@ -367,7 +367,7 @@ public class Cmd {
 	}
 
 	private void destroy(final boolean force) {
-		Exception throwedException = null;
+		Exception toBeThrown = null;
 
 		try {
 			if (force) {
@@ -376,7 +376,7 @@ public class Cmd {
 				destroyProcess();
 			}
 		} catch (final Exception e) {
-			throwedException = withSuppressed(throwedException, e);
+			toBeThrown = withSuppressed(toBeThrown, e);
 		}
 
 		try {
@@ -384,7 +384,7 @@ public class Cmd {
 				pingRunnable.interrupt();
 			}
 		} catch (final Exception e) {
-			throwedException = withSuppressed(throwedException, e);
+			toBeThrown = withSuppressed(toBeThrown, e);
 		} finally {
 			pingRunnable = null;
 		}
@@ -395,7 +395,7 @@ public class Cmd {
 				stdoutPipe.closeIn();
 			}
 		} catch (final Exception e) {
-			throwedException = withSuppressed(throwedException, e);
+			toBeThrown = withSuppressed(toBeThrown, e);
 		} finally {
 			stdoutPipe = null;
 		}
@@ -406,7 +406,7 @@ public class Cmd {
 				stderrPipe.closeIn();
 			}
 		} catch (final Exception e) {
-			throwedException = withSuppressed(throwedException, e);
+			toBeThrown = withSuppressed(toBeThrown, e);
 		} finally {
 			stderrPipe = null;
 		}
@@ -416,7 +416,7 @@ public class Cmd {
 				stdOutNullFile.cleanup();
 			}
 		} catch (final Exception e) {
-			throwedException = withSuppressed(throwedException, e);
+			toBeThrown = withSuppressed(toBeThrown, e);
 		} finally {
 			stdOutNullFile = null;
 		}
@@ -426,7 +426,7 @@ public class Cmd {
 				stdErrNullFile.cleanup();
 			}
 		} catch (final Exception e) {
-			throwedException = withSuppressed(throwedException, e);
+			toBeThrown = withSuppressed(toBeThrown, e);
 		} finally {
 			stdErrNullFile = null;
 		}
@@ -438,14 +438,14 @@ public class Cmd {
 				}
 			}
 		} catch (final Exception e) {
-			throwedException = withSuppressed(throwedException, e);
+			toBeThrown = withSuppressed(toBeThrown, e);
 		}
 
-		if (throwedException != null) {
-			if (throwedException instanceof RuntimeException) {
-				throw (RuntimeException)throwedException;
+		if (toBeThrown != null) {
+			if (toBeThrown instanceof RuntimeException) {
+				throw (RuntimeException)toBeThrown;
 			} else {
-				throw new RuntimeException(throwedException);
+				throw new RuntimeException(toBeThrown);
 			}
 		}
 	}
