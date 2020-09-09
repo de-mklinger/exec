@@ -259,7 +259,7 @@ public class Cmd {
 					pingRunnable.interrupt();
 				}
 			}
-		} catch (CmdException | InterruptedException | RuntimeException e) {
+		} catch (InterruptedException | RuntimeException e) {
 			throw e;
 		} catch (final Exception e) {
 			throw new CmdException(e);

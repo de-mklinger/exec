@@ -20,7 +20,7 @@ package de.mklinger.commons.exec;
  *
  * @author Marc Klinger - mklinger[at]mklinger[dot]de
  */
-public class CmdException extends Exception {
+public class CmdException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
 	public CmdException() {
